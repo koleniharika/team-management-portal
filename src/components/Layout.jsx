@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { NavLink, Navigate, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
@@ -6,6 +7,7 @@ import { initials } from '../lib/util';
 
 const ADMIN_NAV = [
   ['/admin', 'Dashboard'],
+  ['/completed-tasks', 'Review'],
   ['/team', 'Team'],
   ['/brands', 'Brands'],
   ['/salary', 'Salary'],
@@ -39,21 +41,39 @@ export default function Layout() {
   const { employee, isAdmin, signOut } = useAuth();
   const { theme, toggle } = useTheme();
   const navigate = useNavigate();
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const links = isAdmin ? ADMIN_NAV : [['/me', 'My work']];
+  const go = (to) => { setMenuOpen(false); navigate(to); };
 
   return (
     <div className="shell">
       <header className="topbar no-print">
         <div className="wrap topbar-inner">
-          <a className="logo" href={isAdmin ? '/admin' : '/me'} onClick={(e) => { e.preventDefault(); navigate(isAdmin ? '/admin' : '/me'); }}>
+          <a className="logo" href={isAdmin ? '/admin' : '/me'}
+            onClick={(e) => { e.preventDefault(); go(isAdmin ? '/admin' : '/me'); }}>
             studio<em>.</em>erp
           </a>
-          <nav className="nav" aria-label="Main">
+
+          <button
+            className="icon-btn nav-toggle"
+            onClick={() => setMenuOpen((v) => !v)}
+            aria-expanded={menuOpen}
+            aria-controls="main-nav"
+            aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+          >
+            {menuOpen ? '✕' : '☰'}
+          </button>
+
+          <nav id="main-nav" className={`nav ${menuOpen ? 'open' : ''}`} aria-label="Main">
             {links.map(([to, label]) => (
-              <NavLink key={to} to={to} className={({ isActive }) => (isActive ? 'active' : '')}>{label}</NavLink>
+              <NavLink key={to} to={to} onClick={() => setMenuOpen(false)}
+                className={({ isActive }) => (isActive ? 'active' : '')}>
+                {label}
+              </NavLink>
             ))}
           </nav>
+
           <div className="spacer" />
           <button
             className="icon-btn"
@@ -63,9 +83,9 @@ export default function Layout() {
           >
             {theme === 'dark' ? '☀' : '☾'}
           </button>
-          <div className="row" style={{ gap: 8 }}>
+          <div className="row" style={{ gap: 8, flexWrap: 'nowrap' }}>
             <div className="avatar" aria-hidden="true">{initials(employee?.name)}</div>
-            <div style={{ lineHeight: 1.2 }}>
+            <div className="user-meta" style={{ lineHeight: 1.2 }}>
               <strong style={{ fontSize: 14 }}>{employee?.name}</strong>
               <div className="muted" style={{ fontSize: 12 }}>{employee?.subRole || employee?.role}</div>
             </div>

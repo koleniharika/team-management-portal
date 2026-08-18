@@ -1,10 +1,10 @@
 import { Link } from 'react-router-dom';
-import { Badge, Card } from './ui';
+import { Badge, Button, Card } from './ui';
 import { PRIORITY_TONE, fmtDate, isOverdue } from '../lib/util';
 
 const STATUS_TONE = { submitted: 'purple', 'in-progress': 'green', rejected: 'orange', done: 'green' };
 
-export default function TaskCard({ task, brandName, assigneeName, children }) {
+export default function TaskCard({ task, brandName, assigneeName, onDelete, children }) {
   const late = isOverdue(task);
 
   return (
@@ -32,9 +32,23 @@ export default function TaskCard({ task, brandName, assigneeName, children }) {
         <dd style={late ? { color: 'var(--orange)', fontWeight: 700 } : undefined}>{fmtDate(task.deadline)}</dd>
       </dl>
 
+      {task.submissionLink && (
+        <p style={{ margin: 0, fontSize: 13 }}>
+          <a href={task.submissionLink} target="_blank" rel="noreferrer">Submission ↗</a>
+        </p>
+      )}
       {task.remarks && <p className="muted" style={{ margin: 0, fontSize: 13 }}><strong>Remarks:</strong> {task.remarks}</p>}
 
-      {children && <div className="row" style={{ gap: 8 }}>{children}</div>}
+      {(children || onDelete) && (
+        <div className="row" style={{ gap: 8 }}>
+          {children}
+          {onDelete && (
+            <Button size="sm" variant="danger" onClick={() => onDelete(task)} aria-label={`Delete ${task.title}`}>
+              Delete
+            </Button>
+          )}
+        </div>
+      )}
     </Card>
   );
 }

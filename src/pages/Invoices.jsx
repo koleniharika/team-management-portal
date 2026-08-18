@@ -102,18 +102,18 @@ export default function Invoices() {
             <h2 className="display display-md" style={{ marginBottom: 16 }}>Invoices</h2>
             {invoices.length === 0 ? <Empty>Nothing invoiced yet.</Empty> : (
               <div className="table-wrap">
-                <table>
+                <table className="table-stack">
                   <thead>
                     <tr><th>Brand</th><th>Period</th><th className="num">Tasks</th><th className="num">Amount</th><th>Status</th><th className="num"></th></tr>
                   </thead>
                   <tbody>
                     {invoices.map((inv) => (
                       <tr key={inv.$id}>
-                        <td><strong>{brandsById[inv.brandId]?.name || 'Unknown brand'}</strong></td>
-                        <td className="muted">{fmtDate(inv.periodFrom)} → {fmtDate(inv.periodTo)}</td>
-                        <td className="num">{inv.taskIds?.length || 0}</td>
-                        <td className="num">{money(inv.amount)}</td>
-                        <td>
+                        <td data-label="Brand"><strong>{brandsById[inv.brandId]?.name || 'Unknown brand'}</strong></td>
+                        <td className="muted" data-label="Period">{fmtDate(inv.periodFrom)} → {fmtDate(inv.periodTo)}</td>
+                        <td className="num" data-label="Tasks">{inv.taskIds?.length || 0}</td>
+                        <td className="num" data-label="Amount">{money(inv.amount)}</td>
+                        <td data-label="Status">
                           <Select value={inv.status} onChange={(e) => setStatus(inv, e.target.value)}
                             aria-label="Invoice status" style={{ width: 'auto', padding: '8px 14px' }}>
                             <option value="draft">draft</option>
@@ -121,7 +121,7 @@ export default function Invoices() {
                             <option value="paid">paid</option>
                           </Select>
                         </td>
-                        <td className="num">
+                        <td className="num" data-label="Invoice">
                           <Link className="btn btn-ghost btn-sm" to={`/invoices/${inv.$id}`}>Open</Link>
                         </td>
                       </tr>

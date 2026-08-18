@@ -58,17 +58,17 @@ export default function ReportCard() {
         <h2 className="display display-md" style={{ marginBottom: 16 }}>Completed work</h2>
         {done.length === 0 ? <Empty>Nothing completed yet.</Empty> : (
           <div className="table-wrap">
-            <table>
+            <table className="table-stack">
               <thead><tr><th>Task</th><th>Deadline</th><th>Completed</th><th className="num">Result</th></tr></thead>
               <tbody>
                 {done.map((t) => {
                   const overshoot = t.deadline && t.completedAt ? daysBetween(t.deadline, t.completedAt) : 0;
                   return (
                     <tr key={t.$id}>
-                      <td><Link to={`/tasks/${t.$id}`} className="link-plain"><strong>{t.title}</strong></Link></td>
-                      <td>{fmtDate(t.deadline)}</td>
-                      <td>{fmtDate(t.completedAt)}</td>
-                      <td className="num">
+                      <td data-label="Task"><Link to={`/tasks/${t.$id}`} className="link-plain"><strong>{t.title}</strong></Link></td>
+                      <td data-label="Deadline">{fmtDate(t.deadline)}</td>
+                      <td data-label="Completed">{fmtDate(t.completedAt)}</td>
+                      <td className="num" data-label="Result">
                         {overshoot > 0
                           ? <Badge tone="orange">{overshoot}d late</Badge>
                           : <Badge tone="green">on time</Badge>}
@@ -86,15 +86,15 @@ export default function ReportCard() {
         <h2 className="display display-md" style={{ marginBottom: 16 }}>Payments</h2>
         {payments.length === 0 ? <Empty>No payment records.</Empty> : (
           <div className="table-wrap">
-            <table>
+            <table className="table-stack">
               <thead><tr><th>Month</th><th>Status</th><th className="num">Net</th><th className="num">Payslip</th></tr></thead>
               <tbody>
                 {[...payments].sort((a, b) => String(b.month).localeCompare(String(a.month))).map((p) => (
                   <tr key={p.$id}>
-                    <td>{fmtMonth(p.month)}</td>
-                    <td><Badge tone={p.status === 'paid' ? 'green' : 'orange'}>{p.status}</Badge></td>
-                    <td className="num">{money(netPay(p))}</td>
-                    <td className="num">
+                    <td data-label="Month">{fmtMonth(p.month)}</td>
+                    <td data-label="Status"><Badge tone={p.status === 'paid' ? 'green' : 'orange'}>{p.status}</Badge></td>
+                    <td className="num" data-label="Net">{money(netPay(p))}</td>
+                    <td className="num" data-label="Payslip">
                       <Link className="btn btn-ghost btn-sm" to={`/salary/${userId}/${p.month}`}>View</Link>
                     </td>
                   </tr>

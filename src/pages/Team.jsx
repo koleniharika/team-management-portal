@@ -31,7 +31,7 @@ export default function Team() {
       <ErrorNote error={error} />
       {loading ? <Loading /> : employees.length === 0 ? <Empty>No employees yet.</Empty> : (
         <div className="table-wrap">
-          <table>
+          <table className="table-stack">
             <thead>
               <tr>
                 <th>Name</th><th>Role</th><th>Joined</th>
@@ -41,24 +41,24 @@ export default function Team() {
             <tbody>
               {employees.map((e) => (
                 <tr key={e.$id}>
-                  <td>
+                  <td data-label="Name">
                     <strong>{e.name}</strong>
                     <div className="muted" style={{ fontSize: 12 }}>{e.email}</div>
                   </td>
-                  <td>
+                  <td data-label="Role">
                     <Badge tone={e.role === 'admin' ? 'purple' : undefined}>{e.role}</Badge>{' '}
                     <span className="muted">{e.subRole}</span>
                   </td>
-                  <td>{fmtDate(e.joinDate)}</td>
-                  <td className="num">{active(e.userId)}</td>
-                  <td>
+                  <td data-label="Joined">{fmtDate(e.joinDate)}</td>
+                  <td className="num" data-label="Active">{active(e.userId)}</td>
+                  <td data-label="Availability">
                     <Select value={e.status} onChange={(ev) => setStatus(e, ev.target.value)}
                       aria-label={`Availability for ${e.name}`} style={{ width: 'auto', padding: '8px 14px' }}>
                       <option value="available">available</option>
                       <option value="on-leave">on-leave</option>
                     </Select>
                   </td>
-                  <td className="num">
+                  <td className="num" data-label="Report">
                     <Link to={`/team/${e.userId}`} className="btn btn-ghost btn-sm">Report card</Link>
                   </td>
                 </tr>

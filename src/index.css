@@ -220,6 +220,7 @@ input[type="date"], input[type="month"] { min-height: 45px; }
 dialog.modal {
   padding: 0; border: 1px solid var(--border); background: var(--surface); color: var(--text);
   border-radius: var(--r-xl); width: min(520px, 92vw); box-shadow: var(--shadow-lg);
+  max-height: min(88vh, 900px); overflow-y: auto;   /* long forms scroll inside the dialog */
 }
 dialog.modal::backdrop { background: rgba(0, 0, 0, 0.55); backdrop-filter: blur(3px); }
 .modal-body { padding: 32px; }
@@ -270,6 +271,80 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 @keyframes reveal { from { opacity: 0; transform: translateY(14px); } }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
+
+/* ---- filter bar ---- */
+.filter-bar {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 12px;
+  align-items: end;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: 20px;
+  margin-bottom: 28px;
+  box-shadow: var(--shadow);
+}
+.filter-bar .field { margin-bottom: 0; }
+.filter-bar .field > span { padding-left: 6px; }
+
+/* main column + side panel */
+.grid-split { grid-template-columns: minmax(0, 2.2fr) minmax(280px, 1fr); align-items: start; }
+.panel-sticky { position: sticky; top: 88px; }
+
+/* ---- responsive ---- */
+.nav-toggle { display: none; }
+
+@media (max-width: 960px) {
+  .grid-split { grid-template-columns: minmax(0, 1fr); }
+  .panel-sticky { position: static; }
+}
+
+@media (max-width: 860px) {
+  .topbar-inner { flex-wrap: wrap; row-gap: 10px; }
+  .nav-toggle { display: inline-flex; order: 2; }
+  .nav { display: none; order: 10; width: 100%; flex-direction: column; align-items: stretch; padding-bottom: 8px; }
+  .nav.open { display: flex; }
+  .nav a { padding: 12px 18px; }
+}
+
+@media (max-width: 720px) {
+  :root { --section: 64px; }
+  .wrap { width: min(1240px, 100% - 24px); }
+  .page { padding: 20px 0 64px; }
+  .section { margin-top: 40px; }
+  .card { padding: 22px; }
+  .card-feature { border-radius: var(--r-lg); }
+  .grid-cards { grid-template-columns: 1fr; }
+  .grid { gap: 16px; }
+  .filter-bar { padding: 16px; gap: 10px; grid-template-columns: 1fr; }
+  .modal-body { padding: 22px; }
+  dialog.modal { width: calc(100vw - 20px); border-radius: var(--r-lg); }
+
+  /* tables marked .table-stack become label/value rows instead of scrolling sideways */
+  .table-stack thead { display: none; }
+  .table-stack, .table-stack tbody, .table-stack tr, .table-stack td { display: block; width: 100%; }
+  .table-stack tr { padding: 12px 0; border-bottom: 1px solid var(--border); }
+  .table-stack tr:last-child { border-bottom: 0; }
+  .table-stack td {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 7px 18px; border: 0; text-align: right;
+  }
+  .table-stack td::before {
+    content: attr(data-label);
+    flex: none; text-align: left;
+    font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-2);
+  }
+  .table-stack td select { width: auto; }
+}
+
+@media (max-width: 520px) {
+  .display-xl { font-size: clamp(1.9rem, 9vw, 2.4rem); }
+  .user-meta { display: none; }
+  .btn { padding: 11px 18px; }
+  .card { padding: 18px; border-radius: var(--r-md); }
+  .dl { grid-template-columns: 1fr auto; }
 }
 
 /* ---- print (payslip + invoice) ---- */

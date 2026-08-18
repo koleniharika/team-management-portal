@@ -138,15 +138,15 @@ export default function Salary() {
             <h2 className="display display-md" style={{ marginBottom: 16 }}>Payment history</h2>
             {history.length === 0 ? <Empty>No payments recorded yet.</Empty> : (
               <div className="table-wrap">
-                <table>
+                <table className="table-stack">
                   <thead><tr><th>Paid on</th><th>Employee</th><th>Month</th><th className="num">Net</th></tr></thead>
                   <tbody>
                     {history.map((p) => (
                       <tr key={p.$id}>
-                        <td>{fmtDate(p.paidOn)}</td>
-                        <td>{nameOf(p.employeeId)}</td>
-                        <td className="muted">{fmtMonth(p.month)}</td>
-                        <td className="num">{money(netPay(p))}</td>
+                        <td data-label="Paid on">{fmtDate(p.paidOn)}</td>
+                        <td data-label="Employee">{nameOf(p.employeeId)}</td>
+                        <td className="muted" data-label="Month">{fmtMonth(p.month)}</td>
+                        <td className="num" data-label="Net">{money(netPay(p))}</td>
                       </tr>
                     ))}
                   </tbody>

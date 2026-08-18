@@ -8,6 +8,7 @@ import Layout, { ProtectedRoute } from './components/Layout';
 import Login from './pages/Login';
 import AdminDashboard from './pages/AdminDashboard';
 import EmployeeDashboard from './pages/EmployeeDashboard';
+import CompletedTasks from './pages/CompletedTasks';
 import TaskDetail from './pages/TaskDetail';
 import Team from './pages/Team';
 import ReportCard from './pages/ReportCard';
@@ -36,6 +37,7 @@ createRoot(document.getElementById('root')).render(
             <Route element={<ProtectedRoute adminOnly />}>
               <Route element={<Layout />}>
                 <Route path="/admin" element={<AdminDashboard />} />
+                <Route path="/completed-tasks" element={<CompletedTasks />} />
                 <Route path="/team" element={<Team />} />
                 <Route path="/team/:userId" element={<ReportCard />} />
                 <Route path="/brands" element={<Brands />} />

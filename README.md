@@ -78,13 +78,17 @@ src/
   lib/        appwrite client + row helpers, date/money utils, useAsync
   context/    AuthContext (session + role), ThemeContext (dark/light)
   components/ ui.jsx (button, card, badge, input, modal, stat), Layout, TaskCard, TaskForm
-  pages/      Login, AdminDashboard, EmployeeDashboard, TaskDetail, Team, ReportCard,
-              Brands, Salary, Payslip, Invoices, InvoiceView, Analytics
+  pages/      Login, AdminDashboard, EmployeeDashboard, CompletedTasks, TaskDetail, Team,
+              ReportCard, Brands, Salary, Payslip, Invoices, InvoiceView, Analytics
 ```
 
 Routes: `/` sign-in · `/me` employee desk · `/tasks/:id` detail + comments ·
-`/admin`, `/team`, `/team/:userId`, `/brands`, `/salary`, `/salary/:userId/:month`,
-`/invoices`, `/invoices/:id`, `/analytics` (admin only).
+`/admin`, `/completed-tasks`, `/team`, `/team/:userId`, `/brands`, `/salary`,
+`/salary/:userId/:month`, `/invoices`, `/invoices/:id`, `/analytics` (admin only).
+
+Deleting a task also deletes its comments (`deleteTaskWithComments` in
+[src/lib/appwrite.js](src/lib/appwrite.js)) — there is no relationship to cascade, so the rows are
+removed by query. Admins can delete any task; everyone else only what they created.
 
 ## Theming
 

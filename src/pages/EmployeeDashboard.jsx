@@ -1,11 +1,11 @@
 import { useMemo, useState } from 'react';
-import { db, Query } from '../lib/appwrite';
+import { confirmDeleteTask, db, Query } from '../lib/appwrite';
 import { useAsync } from '../lib/useAsync';
 import { useAuth } from '../context/AuthContext';
 import { Button, Empty, ErrorNote, Field, Input, Loading, Modal, PageHead, Stat, TextArea } from '../components/ui';
 import TaskCard from '../components/TaskCard';
 import TaskForm from '../components/TaskForm';
-import { byId, isOverdue } from '../lib/util';
+import { byId, canDeleteTask, isOverdue } from '../lib/util';
 
 export default function EmployeeDashboard() {
   const { employee } = useAuth();
@@ -23,6 +23,11 @@ export default function EmployeeDashboard() {
   const { tasks = [], brands = [] } = data || {};
   const brandsById = useMemo(() => byId(brands), [brands]);
   const open = tasks.filter((t) => t.status !== 'done');
+
+  const removeTask = async (task) => {
+    if (await confirmDeleteTask(task)) reload();
+  };
+
   const late = open.filter(isOverdue).length;
 
   return (
@@ -43,7 +48,12 @@ export default function EmployeeDashboard() {
       ) : (
         <div className="grid grid-cards">
           {open.map((t) => (
-            <TaskCard key={t.$id} task={t} brandName={brandsById[t.brandId]?.name}>
+            <TaskCard
+              key={t.$id}
+              task={t}
+              brandName={brandsById[t.brandId]?.name}
+              onDelete={canDeleteTask(t, employee) ? removeTask : undefined}
+            >
               {t.status === 'submitted'
                 ? <span className="muted" style={{ fontSize: 13 }}>Waiting on review</span>
                 : <Button size="sm" onClick={() => setSubmitFor(t)}>Submit work</Button>}

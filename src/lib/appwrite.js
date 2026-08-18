@@ -39,3 +39,22 @@ export const db = {
 };
 
 export { ID, Query };
+
+/**
+ * Deletes a task and the comments pointing at it. Comments go first: there is no
+ * relationship to cascade, so a half-failed delete should leave the task (and a way
+ * to retry) rather than orphaned comment rows.
+ */
+export const deleteTaskWithComments = async (taskId) => {
+  const comments = await db.list('comments', [Query.equal('taskId', taskId)]);
+  await Promise.all(comments.map((c) => db.remove('comments', c.$id)));
+  await db.remove('tasks', taskId);
+};
+
+/** Confirm + delete, shared by the card, the detail view and the review page. */
+export const confirmDeleteTask = async (task) => {
+  // ponytail: native confirm, same as the brands delete — swap for a Modal if design asks
+  if (!window.confirm("Delete this task? This can't be undone.")) return false;
+  await deleteTaskWithComments(task.$id);
+  return true;
+};

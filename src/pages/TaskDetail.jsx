@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { db, Query } from '../lib/appwrite';
+import { confirmDeleteTask, db, Query } from '../lib/appwrite';
 import { useAsync } from '../lib/useAsync';
 import { useAuth } from '../context/AuthContext';
 import { Badge, Button, Card, Empty, ErrorNote, Field, Loading, Modal, TextArea } from '../components/ui';
-import { PRIORITY_TONE, fmtDate, isOverdue, toDateTime, today } from '../lib/util';
+import { PRIORITY_TONE, canDeleteTask, fmtDate, isOverdue, toDateTime, today } from '../lib/util';
 
 export default function TaskDetail() {
   const { id } = useParams();
@@ -53,6 +53,19 @@ export default function TaskDetail() {
     });
   };
 
+  // deleting takes the task's comments with it, then drops us back to the list
+  const remove = async () => {
+    setBusy(true);
+    setError(null);
+    try {
+      if (await confirmDeleteTask(task)) navigate(isAdmin ? '/admin' : '/me', { replace: true });
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
   // completedAt holds the local calendar day it was closed, same encoding as deadline,
   // so the on-time comparison never straddles a timezone. The real instant is $updatedAt.
   const approve = () => act(() => db.update('tasks', id, { status: 'done', completedAt: toDateTime(today()) }));
@@ -68,7 +81,12 @@ export default function TaskDetail() {
 
   return (
     <div className="stack">
-      <Button variant="ghost" size="sm" style={{ alignSelf: 'flex-start' }} onClick={() => navigate(-1)}>← Back</Button>
+      <div className="row-between">
+        <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>← Back</Button>
+        {canDeleteTask(task, employee) && (
+          <Button variant="danger" size="sm" onClick={remove} disabled={busy}>Delete task</Button>
+        )}
+      </div>
 
       <Card feature className={isOverdue(task) ? 'card-overdue' : ''}>
         <div className="row" style={{ gap: 8, marginBottom: 14 }}>

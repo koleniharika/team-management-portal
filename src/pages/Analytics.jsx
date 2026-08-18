@@ -68,15 +68,15 @@ export default function Analytics() {
         <h2 className="display display-md" style={{ marginBottom: 16 }}>Per brand</h2>
         {perBrand.length === 0 ? <Empty>No brands yet.</Empty> : (
           <div className="table-wrap">
-            <table>
+            <table className="table-stack">
               <thead>
                 <tr><th>Brand</th><th>Tasks</th><th className="num">Completed</th><th className="num">Revenue</th><th className="num">Invoiced</th></tr>
               </thead>
               <tbody>
                 {perBrand.map((r) => (
                   <tr key={r.brand.$id}>
-                    <td><strong>{r.brand.name}</strong></td>
-                    <td style={{ minWidth: 180 }}>
+                    <td data-label="Brand"><strong>{r.brand.name}</strong></td>
+                    <td data-label="Tasks" style={{ minWidth: 180 }}>
                       <div className="row" style={{ gap: 10, flexWrap: 'nowrap' }}>
                         <div style={{ flex: 1, height: 8, borderRadius: 999, background: 'var(--tint-ink)' }}>
                           <div style={{ width: `${(r.total / maxTasks) * 100}%`, height: '100%', borderRadius: 999, background: 'var(--purple)' }} />
@@ -84,9 +84,9 @@ export default function Analytics() {
                         <span className="mono-nums muted">{r.total}</span>
                       </div>
                     </td>
-                    <td className="num">{r.completed}</td>
-                    <td className="num">{money(r.revenue)}</td>
-                    <td className="num muted">{money(r.invoiced)}</td>
+                    <td className="num" data-label="Completed">{r.completed}</td>
+                    <td className="num" data-label="Revenue">{money(r.revenue)}</td>
+                    <td className="num muted" data-label="Invoiced">{money(r.invoiced)}</td>
                   </tr>
                 ))}
               </tbody>

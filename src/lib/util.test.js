@@ -1,6 +1,6 @@
 // Self-check for the date / salary-cycle math. Run: `npm run check`
 import assert from 'node:assert/strict';
-import { nextPayday, daysBetween, payStatus, netPay, isOverdue, today, addDays, parseDate, toDateTime, fmtDate } from './util.js';
+import { nextPayday, daysBetween, payStatus, netPay, isOverdue, today, addDays, parseDate, toDateTime, fmtDate, canDeleteTask } from './util.js';
 
 assert.equal(nextPayday('2026-01-15', 15), '2026-02-15', 'same date next month');
 assert.equal(nextPayday('2026-01-31', 31), '2026-02-28', 'clamp to short month');
@@ -38,5 +38,17 @@ assert.equal(stored.slice(0, 10), '2026-08-20', 'round-trips regardless of TZ');
 assert.equal(daysBetween('2026-08-18', stored), 2, 'date maths accepts a stored datetime');
 assert.equal(fmtDate(stored), fmtDate('2026-08-20'), 'formats the day it was picked');
 assert.equal(isOverdue({ deadline: toDateTime(addDays(today(), -1)), status: 'pending' }), true);
+
+// who may delete a task
+const admin = { userId: 'a1', role: 'admin' };
+const worker = { userId: 'e1', role: 'employee' };
+const mine = { createdBy: 'e1' };
+const theirs = { createdBy: 'e2' };
+assert.equal(canDeleteTask(theirs, admin), true, 'admins delete anything');
+assert.equal(canDeleteTask(mine, worker), true, 'employees delete what they created');
+assert.equal(canDeleteTask(theirs, worker), false, "employees cannot delete other people's tasks");
+assert.equal(canDeleteTask(theirs, null), false, 'no signed-in employee, no delete');
+assert.equal(canDeleteTask(null, admin), false, 'no task, no delete');
+assert.equal(canDeleteTask({}, worker), false, 'a task with no creator is not yours');
 
 console.log('util self-check ok');

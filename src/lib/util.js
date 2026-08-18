@@ -65,3 +65,7 @@ export const byId = (rows, key = '$id') => Object.fromEntries(rows.map((r) => [r
 
 export const initials = (name = '?') =>
   name.trim().split(/\s+/).slice(0, 2).map((w) => w[0]).join('').toUpperCase();
+
+/** Admins delete anything; everyone else only what they created. */
+export const canDeleteTask = (task, employee) =>
+  !!task && !!employee && (employee.role === 'admin' || task.createdBy === employee.userId);
