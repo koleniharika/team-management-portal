@@ -78,9 +78,9 @@ export default function Salary() {
         <>
           <div className="grid grid-stats">
             <Stat label="Employees" value={employees.length} tone="ink" />
-            <Stat label="Due today" value={rows.filter((r) => r.status.key === 'due').length} tone="purple" />
+            <Stat label="Due today" value={rows.filter((r) => r.status.key === 'due').length} tone="lilac" />
             <Stat label="Overdue" value={rows.filter((r) => r.status.key === 'overdue').length} tone="orange" />
-            <Stat label="Paid this month" value={money(paidThisMonth)} tone="green" />
+            <Stat label="Paid this month" value={money(paidThisMonth)} tone="lime" />
           </div>
 
           <div className="row" style={{ margin: '28px 0 20px' }}>
@@ -104,7 +104,7 @@ export default function Salary() {
                   <Card key={e.$id} hover className={`reveal ${status.key === 'overdue' ? 'card-overdue' : ''}`}>
                     <div className="row-between" style={{ marginBottom: 16 }}>
                       <div>
-                        <h2 className="display display-md">{e.name}</h2>
+                        <h2 className="card-title">{e.name}</h2>
                         <span className="muted" style={{ fontSize: 13 }}>{e.subRole || e.role}</span>
                       </div>
                       <Badge tone={status.tone} solid={status.key !== 'upcoming'}>{status.label}</Badge>
@@ -113,7 +113,7 @@ export default function Salary() {
                     <dl className="dl">
                       <dt>Joined</dt><dd>{fmtDate(e.joinDate)}</dd>
                       <dt>Base</dt><dd>{money(pay?.base)}</dd>
-                      <dt>Bonus</dt><dd style={{ color: 'var(--green)' }}>{money(pay?.bonus)}</dd>
+                      <dt>Bonus</dt><dd style={{ color: 'var(--lime)' }}>{money(pay?.bonus)}</dd>
                       <dt>Deductions</dt><dd style={{ color: 'var(--orange)' }}>−{money(pay?.deductions)}</dd>
                       <dt><strong>Net for {month}</strong></dt><dd><strong>{money(netPay(pay))}</strong></dd>
                       <dt>Last payment</dt><dd>{fmtDate(lastPaid)}</dd>
@@ -123,8 +123,8 @@ export default function Salary() {
 
                     <div className="row" style={{ marginTop: 20 }}>
                       {isPaid
-                        ? <Badge tone="green" solid>paid {fmtDate(pay.paidOn)}</Badge>
-                        : <Button size="sm" variant="green" onClick={() => markPaid(row)}>Mark as paid</Button>}
+                        ? <Badge tone="lime" solid>paid {fmtDate(pay.paidOn)}</Badge>
+                        : <Button size="sm" variant="lime" onClick={() => markPaid(row)}>Mark as paid</Button>}
                       <Button size="sm" variant="ghost" onClick={() => setEditing(row)}>Amounts</Button>
                       <Link className="btn btn-ghost btn-sm" to={`/salary/${e.userId}/${month}`}>Payslip</Link>
                     </div>

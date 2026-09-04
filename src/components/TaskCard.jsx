@@ -2,22 +2,35 @@ import { Link } from 'react-router-dom';
 import { Badge, Button, Card } from './ui';
 import { PRIORITY_TONE, fmtDate, isOverdue } from '../lib/util';
 
-const STATUS_TONE = { submitted: 'purple', 'in-progress': 'green', rejected: 'orange', done: 'green' };
+const STATUS_TONE = {
+  pending: 'yellow',
+  'in-progress': 'blue',
+  submitted: 'lilac',
+  approved: 'lime',
+  done: 'lime',
+  rejected: 'pink',
+};
 
 export default function TaskCard({ task, brandName, assigneeName, onDelete, children }) {
   const late = isOverdue(task);
+  // calm list card: the only colour block is the priority rule down the left edge
+  const rule = late ? 'orange' : PRIORITY_TONE[task.priority] || 'lilac';
 
   return (
-    <Card hover className={`reveal ${late ? 'card-overdue' : ''}`} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+    <Card
+      hover
+      className={`reveal card-rule ${late ? 'card-overdue' : ''}`}
+      style={{ '--rule': `var(--${rule})`, display: 'flex', flexDirection: 'column', gap: 14 }}
+    >
       <div className="row" style={{ gap: 8 }}>
-        <Badge tone={PRIORITY_TONE[task.priority]} solid>{task.priority}</Badge>
+        <Badge tone={PRIORITY_TONE[task.priority]}>{task.priority}</Badge>
+        <Badge tone={STATUS_TONE[task.status]}>{task.status}</Badge>
         {brandName && <Badge>{brandName}</Badge>}
-        {task.status !== 'pending' && <Badge tone={STATUS_TONE[task.status]}>{task.status}</Badge>}
-        {late && <Badge tone="orange" solid>overdue</Badge>}
+        {late && <Badge tone="orange">overdue</Badge>}
       </div>
 
       <Link to={`/tasks/${task.$id}`} className="link-plain">
-        <h3 className="display display-md">{task.title}</h3>
+        <h3 className="card-title">{task.title}</h3>
       </Link>
 
       {task.description && (

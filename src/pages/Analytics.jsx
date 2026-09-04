@@ -45,10 +45,10 @@ export default function Analytics() {
       <ErrorNote error={error} />
 
       <div className="grid grid-stats">
-        <Stat label="Open tasks" value={pending.length} tone="purple" />
-        <Stat label="Completed" value={done.length} tone="green" />
+        <Stat label="Open tasks" value={pending.length} tone="lilac" />
+        <Stat label="Completed" value={done.length} tone="lime" />
         <Stat label="Overdue now" value={pending.filter(isOverdue).length} tone="orange" />
-        <Stat label="On-time rate" value={`${rate}%`} tone="green" />
+        <Stat label="On-time rate" value={`${rate}%`} tone="lime" />
       </div>
 
       <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', marginTop: 24 }}>
@@ -57,7 +57,7 @@ export default function Analytics() {
           <p className="display display-xl" style={{ margin: '8px 0' }}>{money(totalRevenue)}</p>
           <p className="muted" style={{ margin: 0 }}>completed tasks × brand rate</p>
         </Card>
-        <Card feature accent="green">
+        <Card feature accent="lime">
           <p className="eyebrow">Collected</p>
           <p className="display display-xl" style={{ margin: '8px 0' }}>{money(collected)}</p>
           <p className="muted" style={{ margin: 0 }}>{invoices.filter((i) => i.status === 'paid').length} invoices paid</p>
@@ -79,7 +79,7 @@ export default function Analytics() {
                     <td data-label="Tasks" style={{ minWidth: 180 }}>
                       <div className="row" style={{ gap: 10, flexWrap: 'nowrap' }}>
                         <div style={{ flex: 1, height: 8, borderRadius: 999, background: 'var(--tint-ink)' }}>
-                          <div style={{ width: `${(r.total / maxTasks) * 100}%`, height: '100%', borderRadius: 999, background: 'var(--purple)' }} />
+                          <div style={{ width: `${(r.total / maxTasks) * 100}%`, height: '100%', borderRadius: 999, background: 'var(--lilac)' }} />
                         </div>
                         <span className="mono-nums muted">{r.total}</span>
                       </div>

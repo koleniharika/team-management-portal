@@ -41,11 +41,11 @@ export default function InvoiceView() {
             </p>
           </div>
           <div style={{ textAlign: 'right' }}>
-            <span className="logo">studio<em style={{ color: 'var(--green)', fontStyle: 'normal' }}>.</em>erp</span>
+            <span className="logo">studio<em style={{ color: 'var(--lime)', fontStyle: 'normal' }}>.</em>erp</span>
             <p className="muted" style={{ margin: '4px 0 0', fontSize: 13 }}>
               {fmtDate(invoice.periodFrom)} → {fmtDate(invoice.periodTo)}
             </p>
-            <Badge tone={invoice.status === 'paid' ? 'green' : invoice.status === 'sent' ? 'purple' : undefined}
+            <Badge tone={invoice.status === 'paid' ? 'lime' : invoice.status === 'sent' ? 'lilac' : undefined}
               style={{ marginTop: 8 }}>{invoice.status}</Badge>
           </div>
         </div>

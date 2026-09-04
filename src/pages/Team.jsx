@@ -46,7 +46,7 @@ export default function Team() {
                     <div className="muted" style={{ fontSize: 12 }}>{e.email}</div>
                   </td>
                   <td data-label="Role">
-                    <Badge tone={e.role === 'admin' ? 'purple' : undefined}>{e.role}</Badge>{' '}
+                    <Badge tone={e.role === 'admin' ? 'lilac' : undefined}>{e.role}</Badge>{' '}
                     <span className="muted">{e.subRole}</span>
                   </td>
                   <td data-label="Joined">{fmtDate(e.joinDate)}</td>

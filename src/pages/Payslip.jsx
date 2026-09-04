@@ -45,7 +45,7 @@ export default function Payslip() {
             <p className="eyebrow">Payslip</p>
             <h1 className="display display-lg">{fmtMonth(month)}</h1>
           </div>
-          <span className="logo">studio<em style={{ color: 'var(--green)', fontStyle: 'normal' }}>.</em>erp</span>
+          <span className="logo">studio<em style={{ color: 'var(--lime)', fontStyle: 'normal' }}>.</em>erp</span>
         </div>
 
         <hr className="hr" />
@@ -75,7 +75,7 @@ export default function Payslip() {
         </table>
 
         <div className="row" style={{ marginTop: 24 }}>
-          <Badge tone={pay.status === 'paid' ? 'green' : 'orange'} solid>{pay.status}</Badge>
+          <Badge tone={pay.status === 'paid' ? 'lime' : 'orange'} solid>{pay.status}</Badge>
           {pay.paidOn && <span className="muted">Paid on {fmtDate(pay.paidOn)}</span>}
         </div>
 

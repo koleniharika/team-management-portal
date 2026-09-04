@@ -91,7 +91,7 @@ export default function TaskDetail() {
       <Card feature className={isOverdue(task) ? 'card-overdue' : ''}>
         <div className="row" style={{ gap: 8, marginBottom: 14 }}>
           <Badge tone={PRIORITY_TONE[task.priority]} solid>{task.priority}</Badge>
-          <Badge tone={task.status === 'done' ? 'green' : task.status === 'submitted' ? 'purple' : undefined}>{task.status}</Badge>
+          <Badge tone={task.status === 'done' ? 'lime' : task.status === 'submitted' ? 'lilac' : undefined}>{task.status}</Badge>
           {brand && <Badge>{brand.name}</Badge>}
           {isOverdue(task) && <Badge tone="orange" solid>overdue</Badge>}
         </div>
@@ -113,7 +113,7 @@ export default function TaskDetail() {
 
         {isAdmin && task.status === 'submitted' && (
           <div className="row" style={{ marginTop: 24 }}>
-            <Button variant="green" onClick={approve} disabled={busy}>Approve &amp; close</Button>
+            <Button variant="lime" onClick={approve} disabled={busy}>Approve &amp; close</Button>
             <Button variant="ghost" onClick={() => setRejecting(true)} disabled={busy}>Send back</Button>
           </div>
         )}

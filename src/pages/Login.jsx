@@ -2,7 +2,9 @@ import { useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
-import { Button, Card, ErrorNote, Field, Input, Loading } from '../components/ui';
+import { Button, Card, ErrorNote, Field, Input, Loading, Star, Triangle } from '../components/ui';
+
+const STRIP = ['Studio ERP', '★', 'Briefs', '★', 'Deadlines', '★', 'Payroll', '★', 'Invoices', '★'];
 
 export default function Login() {
   const { user, employee, isAdmin, loading, signIn } = useAuth();
@@ -27,33 +29,48 @@ export default function Login() {
   };
 
   return (
-    <div className="shell" style={{ justifyContent: 'center' }}>
+    <div className="login">
       <button className="icon-btn" onClick={toggle} aria-label="Toggle theme"
-        style={{ position: 'fixed', top: 20, right: 24, zIndex: 2 }}>
+        style={{ position: 'fixed', top: 18, right: 22, zIndex: 5 }}>
         {theme === 'dark' ? '☀' : '☾'}
       </button>
 
-      <div className="wrap" style={{ display: 'grid', gap: 48, gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', alignItems: 'center', padding: '64px 0' }}>
-        <div className="reveal" style={{ position: 'relative' }}>
-          <div className="deco deco-ring deco-spin" style={{ width: 220, height: 220, right: -40, top: -70, color: 'var(--purple)' }} />
-          <p className="eyebrow">Internal tool · team of 20</p>
-          <h1 className="display display-xl" style={{ margin: '12px 0 20px' }}>
-            Run the <span style={{ color: 'var(--green)' }}>whole</span> studio<br />from one tab.
+      {/* abstract pastel shapes */}
+      <div className="blob" aria-hidden="true"
+        style={{ width: 420, height: 420, background: 'var(--lilac)', top: -140, left: -120, opacity: 0.55 }} />
+      <div className="blob" aria-hidden="true"
+        style={{ width: 260, height: 260, background: 'var(--lime)', bottom: 60, left: '38%', opacity: 0.45 }} />
+      <div className="blob" aria-hidden="true"
+        style={{ width: 320, height: 320, background: 'var(--yellow)', top: '18%', right: -110, opacity: 0.5 }} />
+
+      <div className="wrap login-grid">
+        <div className="login-copy">
+          <span className="chip chip-lilac chip-float" style={{ top: -18, right: '12%', rotate: '-6deg' }}>on time ✓</span>
+          <span className="chip chip-orange chip-float" style={{ bottom: '6%', right: '4%', rotate: '5deg' }}>15 briefs</span>
+
+          <p className="eyebrow" style={{ margin: '0 0 14px' }}>Internal tool · team of 20</p>
+          <h1 className="display display-xl" style={{ marginBottom: 24 }}>
+            Run the <span className="hl">whole</span> studio from one tab.
           </h1>
-          <p className="muted" style={{ maxWidth: '38ch', fontSize: 17 }}>
+          <p className="muted" style={{ maxWidth: '40ch', fontSize: 17, margin: 0 }}>
             Briefs, deadlines, payroll and invoices. Sign in with the credentials your admin gave you —
             there is no public sign-up.
           </p>
-          <div className="row" style={{ marginTop: 28 }}>
-            <span className="badge badge-green">Tasks</span>
-            <span className="badge badge-purple">Payroll</span>
-            <span className="badge badge-orange">Invoicing</span>
+
+          <div className="row" style={{ marginTop: 30, gap: 10 }}>
+            <span className="chip">Tasks</span>
+            <span className="chip chip-blue">Payroll</span>
+            <span className="chip chip-pink">Invoicing</span>
+            <Star size={26} className="spin" />
+            <Triangle size={20} />
           </div>
         </div>
 
-        <Card feature className="reveal" style={{ maxWidth: 460, width: '100%', justifySelf: 'end' }}>
+        <Card className="login-card reveal">
           <h2 className="display display-md" style={{ marginBottom: 4 }}>Sign in</h2>
-          <p className="muted" style={{ marginTop: 0, marginBottom: 24, fontSize: 14 }}>Employees and admins, same door.</p>
+          <p className="muted" style={{ marginTop: 0, marginBottom: 24, fontSize: 14 }}>
+            Employees and admins, same door.
+          </p>
           <form onSubmit={submit}>
             <Field label="Email">
               <Input type="email" autoComplete="username" required autoFocus
@@ -69,6 +86,12 @@ export default function Login() {
             </Button>
           </form>
         </Card>
+      </div>
+
+      <div className="marquee" aria-hidden="true">
+        {[0, 1].map((i) => (
+          <div key={i}>{STRIP.map((w, j) => <span key={j}>{w}</span>)}</div>
+        ))}
       </div>
     </div>
   );

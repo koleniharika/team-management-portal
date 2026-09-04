@@ -160,10 +160,10 @@ export default function AdminDashboard() {
                     </strong>
                     <span className="muted" style={{ fontSize: 12 }}>{e.subRole || e.role}</span>
                   </div>
-                  <Badge tone={workload[e.userId] ? 'purple' : undefined} title={`${workload[e.userId] || 0} active tasks`}>
+                  <Badge tone={workload[e.userId] ? 'lilac' : undefined} title={`${workload[e.userId] || 0} active tasks`}>
                     {workload[e.userId] || 0}
                   </Badge>
-                  <Badge tone={e.status === 'available' ? 'green' : 'orange'}>{e.status}</Badge>
+                  <Badge tone={e.status === 'available' ? 'lime' : 'orange'}>{e.status}</Badge>
                   <Button size="sm" variant="ghost" onClick={() => setFormFor(e.userId)}>Assign</Button>
                 </div>
               ))}

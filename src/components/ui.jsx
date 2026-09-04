@@ -68,8 +68,32 @@ export function Modal({ open, onClose, title, subtitle, children }) {
   );
 }
 
+/** Little star / triangle marks for the bold areas. Decorative only. */
+export function Star({ size = 22, color = 'var(--orange)', className, style }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true" focusable="false"
+      className={className} style={style}>
+      <path fill={color} d="M12 0c.6 6 5.4 10.8 12 12-6.6 1.2-11.4 6-12 12-.6-6-5.4-10.8-12-12C6.6 10.8 11.4 6 12 0Z" />
+    </svg>
+  );
+}
+
+export function Triangle({ size = 18, color = 'var(--lilac)', className, style }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true" focusable="false"
+      className={className} style={style}>
+      <path fill={color} d="M12 2 23 21H1Z" />
+    </svg>
+  );
+}
+
 export function Empty({ children }) {
-  return <div className="empty">{children}</div>;
+  return (
+    <div className="empty">
+      <Star size={26} style={{ display: 'block', margin: '0 auto 12px' }} />
+      {children}
+    </div>
+  );
 }
 
 export function Loading({ label = 'Loading…' }) {
@@ -80,10 +104,10 @@ export function ErrorNote({ error }) {
   return error ? <p className="err" role="alert">{error}</p> : null;
 }
 
-export function Stat({ label, value, tone }) {
+export function Stat({ label, value, tone = 'lime' }) {
   return (
-    <Card tight className="stat left-rule" style={{ '--rule': tone ? `var(--${tone})` : 'var(--ink)' }}>
-      <b className="display">{value}</b>
+    <Card tight className={`stat stat-${tone} reveal`}>
+      <b>{value}</b>
       <span className="eyebrow">{label}</span>
     </Card>
   );
@@ -93,8 +117,11 @@ export function PageHead({ eyebrow, title, children }) {
   return (
     <div className="row-between reveal" style={{ marginBottom: 32 }}>
       <div>
-        {eyebrow && <p className="eyebrow" style={{ margin: '0 0 6px' }}>{eyebrow}</p>}
-        <h1 className="display display-lg">{title}</h1>
+        {eyebrow && <p className="eyebrow" style={{ margin: '0 0 8px' }}>{eyebrow}</p>}
+        <h1 className="display display-lg" style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+          {title}
+          <Star size={18} style={{ flex: 'none', marginTop: 4 }} />
+        </h1>
       </div>
       <div className="row">{children}</div>
     </div>

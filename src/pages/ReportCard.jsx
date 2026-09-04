@@ -35,14 +35,14 @@ export default function ReportCard() {
       </PageHead>
 
       <div className="grid grid-stats">
-        <Stat label="Completed" value={done.length} tone="green" />
-        <Stat label="On time" value={onTime} tone="green" />
+        <Stat label="Completed" value={done.length} tone="lime" />
+        <Stat label="On time" value={onTime} tone="lime" />
         <Stat label="Late" value={late.length} tone="orange" />
-        <Stat label="Active now" value={active.length} tone="purple" />
+        <Stat label="Active now" value={active.length} tone="lilac" />
       </div>
 
       <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', marginTop: 24 }}>
-        <Card feature accent="green">
+        <Card feature accent="lime">
           <p className="eyebrow">On-time rate</p>
           <p className="display display-xl" style={{ margin: '8px 0' }}>{rate}%</p>
           <p className="muted" style={{ margin: 0 }}>{onTime} of {done.length} delivered by the deadline</p>
@@ -71,7 +71,7 @@ export default function ReportCard() {
                       <td className="num" data-label="Result">
                         {overshoot > 0
                           ? <Badge tone="orange">{overshoot}d late</Badge>
-                          : <Badge tone="green">on time</Badge>}
+                          : <Badge tone="lime">on time</Badge>}
                       </td>
                     </tr>
                   );
@@ -92,7 +92,7 @@ export default function ReportCard() {
                 {[...payments].sort((a, b) => String(b.month).localeCompare(String(a.month))).map((p) => (
                   <tr key={p.$id}>
                     <td data-label="Month">{fmtMonth(p.month)}</td>
-                    <td data-label="Status"><Badge tone={p.status === 'paid' ? 'green' : 'orange'}>{p.status}</Badge></td>
+                    <td data-label="Status"><Badge tone={p.status === 'paid' ? 'lime' : 'orange'}>{p.status}</Badge></td>
                     <td className="num" data-label="Net">{money(netPay(p))}</td>
                     <td className="num" data-label="Payslip">
                       <Link className="btn btn-ghost btn-sm" to={`/salary/${userId}/${p.month}`}>View</Link>

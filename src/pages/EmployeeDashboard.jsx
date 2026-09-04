@@ -37,9 +37,9 @@ export default function EmployeeDashboard() {
       </PageHead>
 
       <div className="grid grid-stats" style={{ marginBottom: 32 }}>
-        <Stat label="Open tasks" value={open.length} tone="purple" />
+        <Stat label="Open tasks" value={open.length} tone="lilac" />
         <Stat label="Overdue" value={late} tone="orange" />
-        <Stat label="Completed" value={tasks.length - open.length} tone="green" />
+        <Stat label="Completed" value={tasks.length - open.length} tone="lime" />
       </div>
 
       <ErrorNote error={error} />
@@ -113,7 +113,7 @@ function SubmitModal({ task, onClose, onDone }) {
         <ErrorNote error={error} />
         <div className="modal-actions">
           <Button type="button" variant="ghost" onClick={onClose}>Cancel</Button>
-          <Button variant="green" disabled={busy}>{busy ? 'Sending…' : 'Submit for review'}</Button>
+          <Button variant="lime" disabled={busy}>{busy ? 'Sending…' : 'Submit for review'}</Button>
         </div>
       </form>
     </Modal>

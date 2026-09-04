@@ -50,8 +50,8 @@ export function payStatus(lastPaid, anchor) {
   const due = nextPayday(lastPaid, anchor);
   const left = daysBetween(today(), due);
   if (left < 0) return { key: 'overdue', tone: 'orange', label: `${-left}d overdue`, note: `Overdue by ${-left} day${-left > 1 ? 's' : ''}`, due, left };
-  if (left === 0) return { key: 'due', tone: 'purple', label: 'due today', note: 'Payment due today', due, left };
-  return { key: 'upcoming', tone: 'green', label: `in ${left}d`, note: `${left} day${left > 1 ? 's' : ''} remaining`, due, left };
+  if (left === 0) return { key: 'due', tone: 'lilac', label: 'due today', note: 'Payment due today', due, left };
+  return { key: 'upcoming', tone: 'lime', label: `in ${left}d`, note: `${left} day${left > 1 ? 's' : ''} remaining`, due, left };
 }
 
 export const netPay = (p) => Number(p?.base || 0) + Number(p?.bonus || 0) - Number(p?.deductions || 0);
@@ -59,7 +59,7 @@ export const netPay = (p) => Number(p?.base || 0) + Number(p?.bonus || 0) - Numb
 export const isOverdue = (task) =>
   !!task.deadline && task.status !== 'done' && daysBetween(today(), task.deadline) < 0;
 
-export const PRIORITY_TONE = { high: 'orange', medium: 'purple', low: 'green' };
+export const PRIORITY_TONE = { high: 'orange', medium: 'lilac', low: 'lime' };
 
 export const byId = (rows, key = '$id') => Object.fromEntries(rows.map((r) => [r[key], r]));
 

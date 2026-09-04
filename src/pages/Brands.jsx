@@ -27,12 +27,12 @@ export default function Brands() {
         <div className="grid grid-cards">
           {brands.map((b) => (
             <Card key={b.$id} hover className="reveal">
-              <h2 className="display display-md">{b.name}</h2>
+              <h2 className="card-title">{b.name}</h2>
               <p className="muted" style={{ margin: '6px 0 18px' }}>
                 {b.contactName || '—'}{b.contactInfo ? ` · ${b.contactInfo}` : ''}
               </p>
-              <p className="display display-md" style={{ color: 'var(--green)' }}>
-                {money(b.ratePerProject)} <span className="muted" style={{ fontFamily: 'DM Sans', fontSize: 13 }}>/ project</span>
+              <p className="display display-md" style={{ color: 'var(--lime)' }}>
+                {money(b.ratePerProject)} <span className="muted" style={{ fontFamily: 'Geist, sans-serif', fontSize: 13 }}>/ project</span>
               </p>
               {b.notes && <p className="muted" style={{ fontSize: 14 }}>{b.notes}</p>}
               <div className="row" style={{ marginTop: 20 }}>
