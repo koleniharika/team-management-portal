@@ -473,6 +473,55 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   .chip-float { display: none; }
 }
 
+/* ---- invoicing (local) ---- */
+.invoice-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;
+}
+.line-row {
+  display: grid; gap: 8px; align-items: center;
+  grid-template-columns: minmax(0, 3fr) 90px 120px 140px auto;
+}
+.invoice-totals {
+  display: flex; justify-content: flex-end;
+  margin: 20px 0 4px; padding-top: 16px; border-top: 1px solid var(--border);
+}
+.invoice-totals .dl { min-width: 260px; }
+@media (max-width: 720px) {
+  .line-row { grid-template-columns: 1fr 1fr; }
+  .line-row > *:first-child { grid-column: 1 / -1; }
+  .line-row > *:last-child { grid-column: 1 / -1; justify-self: end; }
+  .invoice-totals .dl { min-width: 0; width: 100%; }
+}
+
+/* ---- dump board (pinterest-style masonry) ---- */
+.masonry { columns: 4 250px; column-gap: 20px; }
+.masonry > * { break-inside: avoid; margin: 0 0 20px; width: 100%; }
+@media (max-width: 900px) { .masonry { columns: 2 160px; column-gap: 14px; } .masonry > * { margin-bottom: 14px; } }
+@media (max-width: 420px) { .masonry { columns: 1; } }
+
+.dump-card { position: relative; overflow: hidden; }
+.dump-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-lift); }
+.dump-del {
+  position: absolute; top: 10px; right: 10px; z-index: 2;
+  padding: 6px 10px; opacity: 0; background: var(--surface);
+}
+.dump-card:hover .dump-del, .dump-del:focus-visible { opacity: 1; }
+@media (hover: none) { .dump-del { opacity: 1; } }
+
+.dump-img { display: block; width: 100%; border-radius: var(--r-sm); }
+.pdf-tile { display: flex; flex-direction: column; gap: 8px; text-decoration: none; }
+.pdf-mark {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 54px; height: 54px; border-radius: var(--r-sm);
+  background: var(--orange); color: var(--on-pastel);
+  font-family: Anton, Impact, sans-serif; font-size: 15px; letter-spacing: 0.04em;
+}
+.dump-skeleton {
+  background: var(--cream); border: 1px solid var(--border); border-radius: var(--r-lg);
+  animation: pulse 1.4s ease-in-out infinite;
+}
+@keyframes pulse { 50% { opacity: 0.5; } }
+
 /* ---- print (payslip + invoice) ---- */
 @media print {
   .no-print { display: none !important; }

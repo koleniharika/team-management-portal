@@ -1,138 +1,154 @@
 import { useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { db, Query } from '../lib/appwrite';
-import { useAsync } from '../lib/useAsync';
-import { Button, Card, Empty, ErrorNote, Field, Input, Loading, PageHead, Select } from '../components/ui';
-import { byId, fmtDate, money, toDateTime, today } from '../lib/util';
+import { Button, Card, Empty, Field, Input, PageHead, TextArea } from '../components/ui';
+import { downloadInvoicePdf } from '../lib/invoicePdf';
+import {
+  amountText, blankInvoice, blankLine, computeTotals, deleteInvoice, loadInvoices, saveInvoice,
+} from '../lib/invoices';
+import { fmtDate } from '../lib/util';
 
-const firstOfMonth = () => today().slice(0, 8) + '01';
+// Local only: no Appwrite, no network. Every field is optional by design.
+const show = (n) => (n === '' ? '—' : `₹${amountText(n)}`);
 
 export default function Invoices() {
-  const [form, setForm] = useState({ brandId: '', periodFrom: firstOfMonth(), periodTo: today() });
-  const [error, setError] = useState(null);
-  const [busy, setBusy] = useState(false);
+  const [invoice, setInvoice] = useState(blankInvoice);
+  const [saved, setSaved] = useState(loadInvoices);
+  const [note, setNote] = useState(null);
 
-  const { data, loading, error: loadError, reload } = useAsync(
-    () => Promise.all([
-      db.list('brands', [Query.orderAsc('name')]),
-      db.list('invoices', [Query.orderDesc('$createdAt')]),
-      db.list('tasks', [Query.equal('status', 'done'), Query.limit(1000)]),
-    ]).then(([brands, invoices, tasks]) => ({ brands, invoices, tasks })),
-    [],
-  );
+  const set = (k) => (e) => setInvoice({ ...invoice, [k]: e.target.value });
+  const totals = useMemo(() => computeTotals(invoice.lines, invoice.taxPercent), [invoice]);
 
-  const { brands = [], invoices = [], tasks = [] } = data || {};
-  const brandsById = useMemo(() => byId(brands), [brands]);
-  const brand = brandsById[form.brandId];
+  const setLine = (id, key) => (e) => setInvoice({
+    ...invoice,
+    lines: invoice.lines.map((l) => (l.id === id ? { ...l, [key]: e.target.value } : l)),
+  });
+  const addLine = () => setInvoice({ ...invoice, lines: [...invoice.lines, blankLine()] });
+  const removeLine = (id) => setInvoice({
+    ...invoice,
+    lines: invoice.lines.length > 1 ? invoice.lines.filter((l) => l.id !== id) : [blankLine()],
+  });
 
-  // completed tasks for the brand whose completedAt falls inside the period
-  const billable = useMemo(() => tasks.filter((t) => {
-    if (t.brandId !== form.brandId || !t.completedAt) return false;
-    const day = String(t.completedAt).slice(0, 10);
-    return day >= form.periodFrom && day <= form.periodTo;
-  }), [tasks, form]);
-
-  const amount = billable.length * Number(brand?.ratePerProject || 0);
-
-  const generate = async (e) => {
-    e.preventDefault();
-    setBusy(true);
-    setError(null);
-    try {
-      await db.create('invoices', {
-        brandId: form.brandId,
-        periodFrom: toDateTime(form.periodFrom),
-        periodTo: toDateTime(form.periodTo),
-        amount,
-        status: 'draft',
-        taskIds: billable.map((t) => t.$id),
-      });
-      reload();
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setBusy(false);
-    }
+  const save = () => {
+    const { list, row } = saveInvoice(invoice);
+    setSaved(list);
+    setInvoice(row);
+    setNote('Saved to this browser.');
   };
 
-  const setStatus = async (inv, status) => { await db.update('invoices', inv.$id, { status }); reload(); };
+  const startNew = () => { setInvoice(blankInvoice()); setNote(null); };
+
+  const download = (row) => downloadInvoicePdf(row).catch((err) => setNote(`PDF failed: ${err.message}`));
+
+  const remove = (row) => {
+    if (!window.confirm('Delete this saved invoice? This only removes it from this browser.')) return;
+    setSaved(deleteInvoice(row.id));
+    if (row.id === invoice.id) startNew();
+  };
 
   return (
     <>
-      <PageHead eyebrow={`${invoices.length} issued`} title="Invoicing" />
+      <PageHead eyebrow="Saved in this browser only" title="Invoicing">
+        {invoice.id && <Button variant="ghost" onClick={startNew}>+ New invoice</Button>}
+        <Button variant="ghost" onClick={save}>Save</Button>
+        <Button onClick={() => download(invoice)}>Download PDF</Button>
+      </PageHead>
 
-      <ErrorNote error={loadError || error} />
-      {loading ? <Loading /> : (
-        <>
-          <Card feature as="form" onSubmit={generate} className="reveal">
-            <h2 className="display display-md" style={{ marginBottom: 20 }}>Generate an invoice</h2>
-            <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12 }}>
-              <Field label="Brand">
-                <Select required value={form.brandId} onChange={(e) => setForm({ ...form, brandId: e.target.value })}>
-                  <option value="">— pick a brand —</option>
-                  {brands.map((b) => <option key={b.$id} value={b.$id}>{b.name}</option>)}
-                </Select>
-              </Field>
-              <Field label="From">
-                <Input type="date" required value={form.periodFrom} onChange={(e) => setForm({ ...form, periodFrom: e.target.value })} />
-              </Field>
-              <Field label="To">
-                <Input type="date" required value={form.periodTo} onChange={(e) => setForm({ ...form, periodTo: e.target.value })} />
-              </Field>
+      <Card feature as="section" className="reveal">
+        <div className="row-between" style={{ marginBottom: 20 }}>
+          <h2 className="display display-md">{invoice.id ? 'Editing invoice' : 'New invoice'}</h2>
+          {note && <span className="badge badge-lime">{note}</span>}
+        </div>
+
+        <div className="invoice-grid">
+          <Field label="Your brand name"><Input value={invoice.sender} onChange={set('sender')} placeholder="Studio name" /></Field>
+          <Field label="Invoice number"><Input value={invoice.number} onChange={set('number')} placeholder="INV-014" /></Field>
+          <Field label="Invoice date"><Input type="date" value={invoice.date} onChange={set('date')} /></Field>
+          <Field label="Bill to"><Input value={invoice.clientName} onChange={set('clientName')} placeholder="Client / brand name" /></Field>
+          <Field label="PAN number"><Input value={invoice.pan} onChange={set('pan')} placeholder="ABCDE1234F" /></Field>
+          <Field label="Tax %" hint="optional"><Input value={invoice.taxPercent} onChange={set('taxPercent')} placeholder="18" inputMode="decimal" /></Field>
+        </div>
+
+        <Field label="Client address / details">
+          <TextArea value={invoice.clientDetails} onChange={set('clientDetails')} rows={3}
+            placeholder={'Street, city\nGSTIN / email / phone'} style={{ minHeight: 80 }} />
+        </Field>
+
+        <hr className="hr" />
+
+        <div className="row-between" style={{ marginBottom: 12 }}>
+          <h3 className="card-title">Line items</h3>
+          <Button size="sm" variant="ghost" onClick={addLine}>+ Add line</Button>
+        </div>
+
+        <div className="stack" style={{ gap: 10 }}>
+          {invoice.lines.map((line, i) => (
+            <div className="line-row" key={line.id}>
+              <Input aria-label={`Description ${i + 1}`} value={line.description} onChange={setLine(line.id, 'description')} placeholder="Description / product" />
+              <Input aria-label={`Quantity ${i + 1}`} value={line.qty} onChange={setLine(line.id, 'qty')} placeholder="Qty" inputMode="decimal" />
+              <Input aria-label={`Rate ${i + 1}`} value={line.rate} onChange={setLine(line.id, 'rate')} placeholder="Rate" inputMode="decimal" />
+              <Input aria-label={`Amount ${i + 1}`} value={line.amount} onChange={setLine(line.id, 'amount')}
+                placeholder={totals.amounts[i] === '' ? 'Amount' : `${amountText(totals.amounts[i])} (auto)`} inputMode="decimal" />
+              <Button size="sm" variant="danger" onClick={() => removeLine(line.id)} aria-label={`Remove line ${i + 1}`}>✕</Button>
             </div>
+          ))}
+        </div>
 
-            {brand && (
-              <div className="row-between" style={{ marginTop: 12, marginBottom: 20 }}>
-                <p className="muted" style={{ margin: 0 }}>
-                  {billable.length} completed {billable.length === 1 ? 'task' : 'tasks'} × {money(brand.ratePerProject)}
-                </p>
-                <p className="display display-md" style={{ margin: 0 }}>{money(amount)}</p>
-              </div>
-            )}
+        <div className="invoice-totals">
+          <dl className="dl">
+            <dt>Subtotal</dt><dd>{show(totals.subtotal)}</dd>
+            <dt>Tax{invoice.taxPercent ? ` (${invoice.taxPercent}%)` : ''}</dt><dd>{show(totals.tax)}</dd>
+            <dt><strong>Total</strong></dt><dd><strong>{show(totals.total)}</strong></dd>
+          </dl>
+        </div>
 
-            <Button disabled={busy || !form.brandId || billable.length === 0}>
-              {busy ? 'Generating…' : 'Generate draft invoice'}
-            </Button>
-            {brand && billable.length === 0 && (
-              <p className="muted" style={{ fontSize: 13 }}>No completed tasks for this brand in that window.</p>
-            )}
-          </Card>
+        <Field label="Notes / payment details">
+          <TextArea value={invoice.notes} onChange={set('notes')} rows={3}
+            placeholder={'Bank name, A/C no., IFSC, UPI\nPayable within 15 days'} style={{ minHeight: 80 }} />
+        </Field>
 
-          <section className="section">
-            <h2 className="display display-md" style={{ marginBottom: 16 }}>Invoices</h2>
-            {invoices.length === 0 ? <Empty>Nothing invoiced yet.</Empty> : (
-              <div className="table-wrap">
-                <table className="table-stack">
-                  <thead>
-                    <tr><th>Brand</th><th>Period</th><th className="num">Tasks</th><th className="num">Amount</th><th>Status</th><th className="num"></th></tr>
-                  </thead>
-                  <tbody>
-                    {invoices.map((inv) => (
-                      <tr key={inv.$id}>
-                        <td data-label="Brand"><strong>{brandsById[inv.brandId]?.name || 'Unknown brand'}</strong></td>
-                        <td className="muted" data-label="Period">{fmtDate(inv.periodFrom)} → {fmtDate(inv.periodTo)}</td>
-                        <td className="num" data-label="Tasks">{inv.taskIds?.length || 0}</td>
-                        <td className="num" data-label="Amount">{money(inv.amount)}</td>
-                        <td data-label="Status">
-                          <Select value={inv.status} onChange={(e) => setStatus(inv, e.target.value)}
-                            aria-label="Invoice status" style={{ width: 'auto', padding: '8px 14px' }}>
-                            <option value="draft">draft</option>
-                            <option value="sent">sent</option>
-                            <option value="paid">paid</option>
-                          </Select>
-                        </td>
-                        <td className="num" data-label="Invoice">
-                          <Link className="btn btn-ghost btn-sm" to={`/invoices/${inv.$id}`}>Open</Link>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </section>
-        </>
-      )}
+        <div className="row" style={{ marginTop: 8 }}>
+          <Button onClick={() => download(invoice)}>Download PDF</Button>
+          <Button variant="ghost" onClick={save}>{invoice.id ? 'Update saved copy' : 'Save invoice'}</Button>
+        </div>
+      </Card>
+
+      <section className="section">
+        <h2 className="display display-md" style={{ marginBottom: 16 }}>Saved invoices</h2>
+        {saved.length === 0 ? (
+          <Empty>Nothing saved yet. Fill the form and hit save — it stays in this browser.</Empty>
+        ) : (
+          <div className="grid grid-cards">
+            {saved.map((row) => {
+              const t = computeTotals(row.lines || [], row.taxPercent);
+              return (
+                <Card key={row.id} hover className="reveal card-rule"
+                  style={{ '--rule': row.id === invoice.id ? 'var(--lime)' : 'var(--lilac)' }}>
+                  <div className="row" style={{ gap: 8, marginBottom: 10 }}>
+                    {row.number && <span className="badge badge-lilac">{row.number}</span>}
+                    {row.date && <span className="badge">{fmtDate(row.date)}</span>}
+                    {row.id === invoice.id && <span className="badge badge-lime">editing</span>}
+                  </div>
+                  <h3 className="card-title">{row.clientName || row.sender || 'Untitled invoice'}</h3>
+                  {row.sender && row.clientName && (
+                    <p className="muted" style={{ margin: '4px 0 0', fontSize: 13 }}>from {row.sender}</p>
+                  )}
+                  <p className="display display-md" style={{ margin: '14px 0 0' }}>{show(t.total)}</p>
+                  <p className="muted" style={{ margin: '4px 0 0', fontSize: 12 }}>
+                    {(row.lines || []).filter((l) => l.description || l.amount).length} line items
+                    {row.savedAt ? ` · saved ${new Date(row.savedAt).toLocaleDateString()}` : ''}
+                  </p>
+                  <div className="row" style={{ gap: 8, marginTop: 18 }}>
+                    <Button size="sm" variant="ghost" onClick={() => { setInvoice(row); setNote(null); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>
+                      Open
+                    </Button>
+                    <Button size="sm" variant="ghost" onClick={() => download(row)}>PDF</Button>
+                    <Button size="sm" variant="danger" onClick={() => remove(row)}>Delete</Button>
+                  </div>
+                </Card>
+              );
+            })}
+          </div>
+        )}
+      </section>
     </>
   );
 }

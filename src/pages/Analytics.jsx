@@ -9,7 +9,8 @@ export default function Analytics() {
     () => Promise.all([
       db.list('tasks', [Query.limit(1000)]),
       db.list('brands', [Query.orderAsc('name')]),
-      db.list('invoices', [Query.limit(500)]),
+      // invoicing is local now; this table may not exist at all, so never fail the page for it
+      db.list('invoices', [Query.limit(500)]).catch(() => []),
     ]).then(([tasks, brands, invoices]) => ({ tasks, brands, invoices })),
     [],
   );

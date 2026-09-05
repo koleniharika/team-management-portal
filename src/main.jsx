@@ -9,6 +9,7 @@ import Login from './pages/Login';
 import AdminDashboard from './pages/AdminDashboard';
 import EmployeeDashboard from './pages/EmployeeDashboard';
 import CompletedTasks from './pages/CompletedTasks';
+import Dump from './pages/Dump';
 import TaskDetail from './pages/TaskDetail';
 import Team from './pages/Team';
 import ReportCard from './pages/ReportCard';
@@ -16,7 +17,6 @@ import Brands from './pages/Brands';
 import Salary from './pages/Salary';
 import Payslip from './pages/Payslip';
 import Invoices from './pages/Invoices';
-import InvoiceView from './pages/InvoiceView';
 import Analytics from './pages/Analytics';
 
 createRoot(document.getElementById('root')).render(
@@ -31,6 +31,7 @@ createRoot(document.getElementById('root')).render(
               <Route element={<Layout />}>
                 <Route path="/me" element={<EmployeeDashboard />} />
                 <Route path="/tasks/:id" element={<TaskDetail />} />
+                <Route path="/dump" element={<Dump />} />
               </Route>
             </Route>
 
@@ -44,7 +45,6 @@ createRoot(document.getElementById('root')).render(
                 <Route path="/salary" element={<Salary />} />
                 <Route path="/salary/:userId/:month" element={<Payslip />} />
                 <Route path="/invoices" element={<Invoices />} />
-                <Route path="/invoices/:id" element={<InvoiceView />} />
                 <Route path="/analytics" element={<Analytics />} />
               </Route>
             </Route>

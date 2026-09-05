@@ -12,6 +12,7 @@ const ADMIN_NAV = [
   ['/brands', 'Brands'],
   ['/salary', 'Salary'],
   ['/invoices', 'Invoices'],
+  ['/dump', 'Dump'],
   ['/analytics', 'Analytics'],
 ];
 
@@ -43,7 +44,7 @@ export default function Layout() {
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
 
-  const links = isAdmin ? ADMIN_NAV : [['/me', 'My work']];
+  const links = isAdmin ? ADMIN_NAV : [['/me', 'My work'], ['/dump', 'Dump']];
   const go = (to) => { setMenuOpen(false); navigate(to); };
 
   return (

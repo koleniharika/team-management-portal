@@ -27,7 +27,9 @@ All keys are `VITE_`-prefixed and read in [src/lib/appwrite.js](src/lib/appwrite
 | `VITE_APPWRITE_TASKS_TABLE_ID` | tasks |
 | `VITE_APPWRITE_COMMENTS_TABLE_ID` | comments |
 | `VITE_APPWRITE_PAYMENTS_TABLE_ID` | payments |
-| `VITE_APPWRITE_INVOICES_TABLE_ID` | invoices |
+| `VITE_APPWRITE_INVOICES_TABLE_ID` | invoices (analytics only — invoicing is local now) |
+| `VITE_APPWRITE_DUMPS_TABLE_ID` | dumps |
+| `VITE_APPWRITE_DUMPS_BUCKET_ID` | storage bucket for dump files |
 
 An empty table-id line falls back to the plain table name (`employees`, `tasks`, …), so it only
 needs filling if your ids differ from the names.
@@ -44,6 +46,11 @@ Columns are the ones in `appwrite-setup.md`. Two notes that matter at runtime:
   west of GMT. `paidOn` is set to `null` (never `''`) when a payment is marked unpaid, so the
   column must be **not required**. `payments.month` stays a plain `YYYY-MM` **string**.
 - **`invoices.taskIds` must be a string array** (an array-of-strings column), not a single string.
+  The invoices table is now only read by Analytics; the invoicing page never touches it.
+- **`dumps`**: `type` (enum `text|image|pdf`), `content`, `fileId`, `fileName`, `createdBy`.
+  Files live in the dumps bucket. Image tiles load through `getFileView` — if they come back 401,
+  give the bucket **read access to Any**: a browser can't attach the session to an `<img>` request
+  when third-party cookies are blocked.
 
 Also add the Appwrite indexes the queries rely on: `employees.userId`, `tasks.assignedTo`,
 `tasks.status`, `comments.taskId`, `payments.employeeId`, `payments.month`, `invoices.brandId`.
@@ -79,12 +86,21 @@ src/
   context/    AuthContext (session + role), ThemeContext (dark/light)
   components/ ui.jsx (button, card, badge, input, modal, stat), Layout, TaskCard, TaskForm
   pages/      Login, AdminDashboard, EmployeeDashboard, CompletedTasks, TaskDetail, Team,
-              ReportCard, Brands, Salary, Payslip, Invoices, InvoiceView, Analytics
+              ReportCard, Brands, Salary, Payslip, Invoices (local), Dump, Analytics
 ```
 
-Routes: `/` sign-in · `/me` employee desk · `/tasks/:id` detail + comments ·
-`/admin`, `/completed-tasks`, `/team`, `/team/:userId`, `/brands`, `/salary`,
-`/salary/:userId/:month`, `/invoices`, `/invoices/:id`, `/analytics` (admin only).
+Routes: `/` sign-in · `/me` employee desk · `/tasks/:id` detail + comments · `/dump` idea board
+(any signed-in user) · `/admin`, `/completed-tasks`, `/team`, `/team/:userId`, `/brands`,
+`/salary`, `/salary/:userId/:month`, `/invoices`, `/analytics` (admin only).
+
+## Invoicing (local only)
+
+`/invoices` never talks to Appwrite. Invoices are typed by hand, kept in `localStorage`
+(`erp.invoices.v1`) and downloaded as a PDF built in the browser with jsPDF — imported on click
+so it stays out of the initial bundle. Every field is optional: blank in, blank out, and totals
+stay empty until a line resolves to a number ([src/lib/invoices.js](src/lib/invoices.js),
+covered by `npm run check`). The PDF prints amounts as `INR` — jsPDF's built-in fonts can't
+encode `₹`.
 
 Deleting a task also deletes its comments (`deleteTaskWithComments` in
 [src/lib/appwrite.js](src/lib/appwrite.js)) — there is no relationship to cascade, so the rows are
@@ -94,8 +110,8 @@ removed by query. Admins can delete any task; everyone else only what they creat
 
 Every colour is a CSS variable in [src/index.css](src/index.css); `.dark` on `<html>` swaps the
 palette, and the choice is saved to `localStorage`. Components never hard-code a colour, so new
-pages get both themes for free. Payslip and invoice pages print via `window.print()` — anything
-marked `.no-print` is dropped.
+pages get both themes for free. The payslip prints via `window.print()` — anything marked
+`.no-print` is dropped. Invoices download as a PDF instead.
 
 ## Salary module
 
