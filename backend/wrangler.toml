@@ -3,22 +3,27 @@ main = "src/index.js"
 compatibility_date = "2026-09-29"
 compatibility_flags = ["nodejs_compat"]
 
-# Comma-separated list of origins allowed to call this API.
-# Add your Vercel URL here after the first frontend deploy.
+# Deploys come from GitHub (Workers Builds), which runs `wrangler deploy` with
+# THIS FILE as the source of truth. Bindings and vars added only in the
+# dashboard are replaced by what is written here — so they live here.
+# Secrets are the exception: they are stored separately and survive deploys,
+# which is why JWT_SECRET is nowhere in this file.
+
+# Your frontend's URL, comma-separated, no trailing slash.
+# Not secret — it is the public address of the site.
 [vars]
-ALLOWED_ORIGINS = "http://localhost:5173,http://127.0.0.1:5173"
+ALLOWED_ORIGINS = "http://localhost:5173,https://https://teamniharikakolemanagementportal.vercel.app/"
 
-# D1: the database and its tables are created BY HAND in the Cloudflare dashboard,
-# and the binding is added there too (Worker > Settings > Bindings > D1).
-# The code only ever needs the binding to be named DB — env.DB.
-# If you'd rather bind it from this file instead of the dashboard, paste the
-# database id below; otherwise leave this block as documentation.
-# [[d1_databases]]
-# binding = "DB"
-# database_name = "erp-db"
-# database_id = ""
+# D1: create the database and its tables in the dashboard, then paste its id
+# here so the GitHub deploy attaches the binding. The id is an identifier, not
+# a credential — it is useless without access to your Cloudflare account, and
+# Cloudflare's own templates commit it. Keep the repo private if you'd rather
+# not publish it at all.
+[[d1_databases]]
+binding = "DB"                 # the code only ever reads env.DB
+database_name = "erp-db"       # whatever you named it in the dashboard
+database_id = "4bc89986-0a35-4752-96e5-01d83f585839"               # <-- paste from D1 > your database > ID
 
-# JWT_SECRET is a secret, not a var: set it in the dashboard, or `wrangler secret put JWT_SECRET`
 
 [observability]
 enabled = true
