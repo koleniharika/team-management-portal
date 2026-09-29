@@ -1,0 +1,22 @@
+{
+  "name": "erp-api",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "db:local": "wrangler d1 execute erp-db --local --file=./schema.sql",
+    "db:remote": "wrangler d1 execute erp-db --remote --file=./schema.sql",
+    "tail": "wrangler tail",
+    "db:reset": "wrangler d1 execute erp-db --local --command \"DELETE FROM employees; DELETE FROM roles; DELETE FROM brands; DELETE FROM tasks; DELETE FROM comments; DELETE FROM payments; DELETE FROM dumps;\"",
+    "test:smoke": "npm run db:reset && node smoke.mjs",
+    "migrate:build": "node migrate/appwrite-to-d1.mjs"
+  },
+  "dependencies": {
+    "hono": "^4.10.7"
+  },
+  "devDependencies": {
+    "wrangler": "^4.48.2"
+  }
+}

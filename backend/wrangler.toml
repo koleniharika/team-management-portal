@@ -1,0 +1,32 @@
+name = "erp-api"
+main = "src/index.js"
+compatibility_date = "2026-09-29"
+compatibility_flags = ["nodejs_compat"]
+
+# Comma-separated list of origins allowed to call this API.
+# Add your Vercel URL here after the first frontend deploy.
+[vars]
+ALLOWED_ORIGINS = "http://localhost:5173,http://127.0.0.1:5173"
+
+# D1: the database and its tables are created BY HAND in the Cloudflare dashboard,
+# and the binding is added there too (Worker > Settings > Bindings > D1).
+# The code only ever needs the binding to be named DB — env.DB.
+# If you'd rather bind it from this file instead of the dashboard, paste the
+# database id below; otherwise leave this block as documentation.
+# [[d1_databases]]
+# binding = "DB"
+# database_name = "erp-db"
+# database_id = ""
+
+# JWT_SECRET is a secret, not a var: set it in the dashboard, or `wrangler secret put JWT_SECRET`
+
+[observability]
+enabled = true
+
+[observability.logs]
+enabled = true
+head_sampling_rate = 1
+
+[observability.traces]
+enabled = true
+head_sampling_rate = 0.1
