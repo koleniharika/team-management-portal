@@ -12,7 +12,7 @@ compatibility_flags = ["nodejs_compat"]
 # Your frontend's URL, comma-separated, no trailing slash.
 # Not secret — it is the public address of the site.
 [vars]
-ALLOWED_ORIGINS = "http://localhost:5173,https://https://teamniharikakolemanagementportal.vercel.app/"
+ALLOWED_ORIGINS = "https://teamniharikakolemanagementportal.vercel.app"
 
 # D1: create the database and its tables in the dashboard, then paste its id
 # here so the GitHub deploy attaches the binding. The id is an identifier, not

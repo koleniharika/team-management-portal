@@ -12,11 +12,19 @@ import dumps from './routes/dumps.js';
 
 const app = new Hono();
 
+// A browser sends Origin with no trailing slash, so trim one off both sides —
+// a pasted "https://site.com/" would otherwise never match and look like a bug.
+const trimSlash = (value) => String(value || '').trim().replace(/\/+$/, '');
+
 app.use('*', cors({
   // ALLOWED_ORIGINS is a comma-separated var in wrangler.toml — add the Vercel URL there.
   origin: (origin, c) => {
-    const allowed = String(c.env.ALLOWED_ORIGINS || '').split(',').map((o) => o.trim()).filter(Boolean);
-    return allowed.includes(origin) ? origin : allowed[0] || '';
+    const allowed = String(c.env.ALLOWED_ORIGINS || '').split(',').map(trimSlash).filter(Boolean);
+    if (allowed.includes(trimSlash(origin))) return origin;
+    // Send no header rather than a misleading one: the browser then says the
+    // header is missing, and this line names the origin that was turned away.
+    console.error(JSON.stringify({ msg: 'CORS: origin not allowed', origin, allowed }));
+    return null;
   },
   allowMethods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
   allowHeaders: ['Authorization', 'Content-Type'],
