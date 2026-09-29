@@ -31,6 +31,20 @@ app.use('*', cors({
   maxAge: 86400,
 }));
 
+// A missing binding or secret otherwise surfaces as an inscrutable runtime
+// error (signing with an undefined secret throws "reading 'includes'").
+// Runs after CORS so the browser can actually read this message.
+app.use('*', async (c, next) => {
+  const missing = [];
+  if (!c.env.DB) missing.push('the D1 binding "DB"');
+  if (!c.env.JWT_SECRET) missing.push('the secret "JWT_SECRET"');
+  if (missing.length) {
+    console.error(JSON.stringify({ msg: 'worker misconfigured', missing }));
+    return c.json({ error: `Server misconfigured: ${missing.join(' and ')} is not set on this Worker.` }, 500);
+  }
+  await next();
+});
+
 app.get('/', (c) => c.json({ ok: true, service: 'erp-api' }));
 
 app.route('/auth', auth);
