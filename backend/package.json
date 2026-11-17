@@ -10,6 +10,7 @@
     "db:remote": "wrangler d1 execute erp-db --remote --file=./schema.sql",
     "tail": "wrangler tail",
     "db:reset": "wrangler d1 execute erp-db --local --command \"DELETE FROM employees; DELETE FROM roles; DELETE FROM brands; DELETE FROM tasks; DELETE FROM comments; DELETE FROM payments; DELETE FROM dumps;\"",
+    "check": "node src/lib/links.test.js",
     "test:smoke": "npm run db:reset && node smoke.mjs",
     "migrate:build": "node migrate/appwrite-to-d1.mjs"
   },

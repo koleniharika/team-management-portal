@@ -26,7 +26,8 @@ export default function AdminDashboard() {
 
   const { tasks = [], employees = [], brands = [], roles = [] } = data || {};
   const brandsById = useMemo(() => byId(brands), [brands]);
-  const empById = useMemo(() => byId(employees), [employees]);
+  const empById = useMemo(() => byId(employees), [employees]); // everyone, so old tasks keep their names
+  const team = useMemo(() => employees.filter((e) => e.status !== 'left'), [employees]); // who can take work
 
   const sorted = useMemo(() => {
     const dir = nearestFirst ? 1 : -1;
@@ -54,7 +55,7 @@ export default function AdminDashboard() {
       && (!filters.status || t.status === filters.status);
   });
 
-  const shownEmployees = employees.filter((e) =>
+  const shownEmployees = team.filter((e) =>
     (!q || e.name.toLowerCase().includes(q))
     && (!filters.role || e.role === filters.role)
     && (!filters.subRole || e.subRole === filters.subRole));
@@ -168,7 +169,7 @@ export default function AdminDashboard() {
                 </div>
               ))}
               {shownEmployees.length === 0 && (
-                <Empty>{employees.length ? 'Nobody matches these filters.' : 'No employees yet.'}</Empty>
+                <Empty>{team.length ? 'Nobody matches these filters.' : 'No employees yet.'}</Empty>
               )}
             </div>
           </Card>
@@ -180,7 +181,7 @@ export default function AdminDashboard() {
         open={formFor !== null}
         onClose={() => setFormFor(null)}
         onCreated={reload}
-        employees={employees}
+        employees={team}
         brands={brands}
         presetAssignee={formFor || ''}
       />

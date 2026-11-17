@@ -22,7 +22,7 @@ export const COLUMNS = {
     'priority', 'deadline', 'submissionLink', 'remarks', 'completedAt'],
   comments: ['taskId', 'authorId', 'authorName', 'message'],
   payments: ['employeeId', 'month', 'base', 'bonus', 'deductions', 'status', 'paidOn'],
-  dumps: ['content', 'createdBy'],
+  dumps: ['dumpType', 'link', 'title', 'description', 'tags', 'createdBy'],
 };
 
 const pick = (table, data, extra = []) => {

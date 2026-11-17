@@ -518,14 +518,38 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 @media (max-width: 900px) { .masonry { columns: 2 160px; column-gap: 14px; } .masonry > * { margin-bottom: 14px; } }
 @media (max-width: 420px) { .masonry { columns: 1; } }
 
-.dump-card { position: relative; overflow: hidden; }
+/* players need the width: one column on phones for the embed tabs */
+@media (max-width: 560px) { .masonry-media { columns: 1; } }
+
+.dump-card { position: relative; overflow: hidden; cursor: pointer; }
 .dump-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-lift); }
-.dump-del {
-  position: absolute; top: 10px; right: 10px; z-index: 2;
-  padding: 6px 10px; opacity: 0; background: var(--surface);
+.dump-media { margin: -20px -20px 14px; }  /* full-bleed inside a tight card */
+.dump-img { display: block; width: 100%; height: auto; }
+.dump-note { margin: 0 0 14px; white-space: pre-wrap; font-size: 16px; line-height: 1.45; }
+.dump-link {
+  display: flex; flex-direction: column; gap: 6px; padding: 28px 20px;
+  background: var(--cream); text-decoration: none;
 }
-.dump-card:hover .dump-del, .dump-del:focus-visible { opacity: 1; }
-@media (hover: none) { .dump-del { opacity: 1; } }
+.dump-meta { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; }
+.dump-open {
+  all: unset; cursor: pointer; font-weight: 650; font-size: 15px; line-height: 1.3; overflow-wrap: anywhere;
+}
+.dump-open:focus-visible, .dump-tag:focus-visible { outline: 2px solid var(--ring); outline-offset: 3px; }
+.dump-tag { border: 0; cursor: pointer; font-family: inherit; }
+.dump-frame { max-width: 340px; margin-inline: auto; }
+.dump-frame .dump-img { max-height: 70vh; object-fit: contain; border-radius: var(--r-md); }
+
+/* platform players. Instagram's embed page adds a header + footer around the media;
+   --ig-chrome is that extra height — tune it if their layout shifts */
+.embed { position: relative; width: 100%; background: var(--cream); }
+.embed iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; display: block; }
+.embed-youtube.embed-v { aspect-ratio: 9 / 16; }
+.embed-youtube.embed-h { aspect-ratio: 16 / 9; }
+.embed-instagram { height: 0; padding-bottom: calc(125% + var(--ig-chrome, 150px)); }
+.embed-instagram.embed-v { padding-bottom: calc(177.78% + var(--ig-chrome, 110px)); }
+
+/* team members who have left: kept for history, out of the way */
+.row-left td { opacity: 0.55; }
 
 .dump-skeleton {
   background: var(--cream); border: 1px solid var(--border); border-radius: var(--r-lg);

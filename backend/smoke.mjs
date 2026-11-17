@@ -141,9 +141,32 @@ check('admin deletes any task', delTask.status === 200);
 const orphan = await call('/comments?taskId=' + mine.json.id, { token: adminToken });
 check('deleting a task takes its comments with it', orphan.status === 403 || (orphan.json.length ?? 0) === 0);
 
-console.log('\n— dumps (text only) —');
-const note = await call('/dumps', { token: empToken, method: 'POST', body: { content: 'hook idea' } });
-check('anyone can post a note', note.status === 201 && note.json.content === 'hook idea', JSON.stringify(note.json));
+console.log('\n— employee status —');
+const left = await call('/employees/' + empId, { token: adminToken, method: 'PATCH', body: { status: 'left' } });
+check("'left' is a valid status", left.status === 200 && left.json.status === 'left', JSON.stringify(left.json));
+check('unknown statuses are refused', (await call('/employees/' + empId, { token: adminToken, method: 'PATCH', body: { status: 'gone' } })).status === 400);
+await call('/employees/' + empId, { token: adminToken, method: 'PATCH', body: { status: 'available' } });
+
+console.log('\n— dumps —');
+const note = await call('/dumps', { token: empToken, method: 'POST', body: { dumpType: 'idea', description: 'hook idea', tags: ['Skincare', '#UGC'] } });
+check('anyone can post a text idea', note.status === 201 && note.json.link === null && note.json.tags === 'skincare,ugc', JSON.stringify(note.json));
+const note2 = await call('/dumps', { token: empToken, method: 'POST', body: { dumpType: 'idea', title: 'second idea' } });
+check('many text ideas can coexist (NULL links)', note2.status === 201, JSON.stringify(note2.json));
+
+const reel = await call('/dumps', { token: adminToken, method: 'POST', body: { dumpType: 'format', link: 'https://www.instagram.com/reel/ABC123/?igsh=xyz', title: 'Split screen', tags: 'skincare' } });
+check('links are cleaned before saving', reel.status === 201 && reel.json.link === 'https://www.instagram.com/reel/ABC123/', JSON.stringify(reel.json));
+const again = await call('/dumps', { token: adminToken, method: 'POST', body: { dumpType: 'carousel', link: 'instagram.com/reel/ABC123?utm_source=x' } });
+check('the same link pasted again is refused', again.status === 409 && /Format Dump/.test(again.json.error), JSON.stringify(again.json));
+check('format dumps need a link', (await call('/dumps', { token: adminToken, method: 'POST', body: { dumpType: 'format', title: 'no link' } })).status === 400);
+check('unknown dump types are refused', (await call('/dumps', { token: adminToken, method: 'POST', body: { dumpType: 'misc', title: 'x' } })).status === 400);
+
+check('filter by dumpType', arr((await call('/dumps?dumpType=format', { token: empToken })).json).length === 1);
+check('filter by exact tag', arr((await call('/dumps?tag=skincare', { token: empToken })).json).length === 2
+  && arr((await call('/dumps?tag=care', { token: empToken })).json).length === 0);
+check('search hits title, description and tags', arr((await call('/dumps?q=SPLIT', { token: empToken })).json).length === 1
+  && arr((await call('/dumps?q=hook', { token: empToken })).json).length === 1
+  && arr((await call('/dumps?q=ugc', { token: empToken })).json).length === 1);
+check('% in a search is literal', arr((await call('/dumps?q=%25', { token: empToken })).json).length === 0);
 
 const empDeletesDump = await call('/dumps/' + note.json.id, { token: empToken, method: 'DELETE' });
 check('employees cannot delete dumps', empDeletesDump.status === 403);

@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "check": "node src/lib/util.test.js && node src/lib/invoices.test.js",
+    "check": "node src/lib/util.test.js && node src/lib/invoices.test.js && node src/lib/embed.test.js",
     "preview": "vite preview"
   },
   "dependencies": {

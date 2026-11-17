@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS employees (
   passwordHash TEXT NOT NULL,
   role TEXT NOT NULL DEFAULT 'employee',
   subRole TEXT,
-  status TEXT NOT NULL DEFAULT 'available',
+  status TEXT NOT NULL DEFAULT 'available', -- available | on-leave | left
   joinDate TEXT,
   mustChangePassword INTEGER NOT NULL DEFAULT 1,
   createdAt TEXT DEFAULT (datetime('now'))
@@ -63,7 +63,11 @@ CREATE TABLE IF NOT EXISTS payments (
 
 CREATE TABLE IF NOT EXISTS dumps (
   id TEXT PRIMARY KEY,
-  content TEXT,
+  dumpType TEXT NOT NULL DEFAULT 'idea', -- carousel | format | idea
+  link TEXT,                             -- cleaned URL; NULL for a text-only idea
+  title TEXT,
+  description TEXT,
+  tags TEXT,                             -- 'a,b,c'
   createdBy TEXT,
   createdAt TEXT DEFAULT (datetime('now'))
 );
@@ -75,3 +79,5 @@ CREATE INDEX IF NOT EXISTS idx_comments_taskId ON comments (taskId);
 CREATE INDEX IF NOT EXISTS idx_payments_employeeId ON payments (employeeId);
 CREATE INDEX IF NOT EXISTS idx_payments_month ON payments (month);
 CREATE INDEX IF NOT EXISTS idx_dumps_createdAt ON dumps (createdAt);
+CREATE INDEX IF NOT EXISTS idx_dumps_dumpType ON dumps (dumpType);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_dumps_link ON dumps (link);

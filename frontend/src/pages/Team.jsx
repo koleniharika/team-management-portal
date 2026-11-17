@@ -5,6 +5,9 @@ import { useAsync } from '../lib/useAsync';
 import { Badge, Button, Empty, ErrorNote, Field, Input, Loading, Modal, PageHead, Select } from '../components/ui';
 import { fmtDate, toDateTime, today } from '../lib/util';
 
+const statusOptions = [['available', 'available'], ['on-leave', 'on-leave'], ['left', 'left the team']]
+  .map(([value, label]) => <option key={value} value={value}>{label}</option>);
+
 export default function Team() {
   const [adding, setAdding] = useState(false);
   const [editing, setEditing] = useState(null);
@@ -20,56 +23,69 @@ export default function Team() {
 
   const { employees = [], roles = [], tasks = [] } = data || {};
   const active = (id) => tasks.filter((t) => t.assignedTo === id).length;
+  const current = employees.filter((e) => e.status !== 'left');
+  const gone = employees.filter((e) => e.status === 'left');
 
   const setStatus = async (emp, status) => { await api.update('employees', emp.id, { status }); reload(); };
 
+  const table = (list) => (
+    <div className="table-wrap">
+      <table className="table-stack">
+        <thead>
+          <tr>
+            <th>Name</th><th>Role</th><th>Joined</th>
+            <th className="num">Active</th><th>Availability</th><th className="num">Report</th>
+          </tr>
+        </thead>
+        <tbody>
+          {list.map((e) => (
+            <tr key={e.id} className={e.status === 'left' ? 'row-left' : undefined}>
+              <td data-label="Name">
+                <strong>{e.name}</strong>
+                <div className="muted" style={{ fontSize: 12 }}>{e.email}</div>
+              </td>
+              <td data-label="Role">
+                <Badge tone={e.role === 'admin' ? 'lilac' : undefined}>{e.role}</Badge>{' '}
+                <span className="muted">{e.subRole}</span>
+              </td>
+              <td data-label="Joined">{fmtDate(e.joinDate)}</td>
+              <td className="num" data-label="Active">{active(e.id)}</td>
+              <td data-label="Availability">
+                <Select value={e.status} onChange={(ev) => setStatus(e, ev.target.value)}
+                  aria-label={`Availability for ${e.name}`} style={{ width: 'auto', padding: '8px 14px' }}>
+                  {statusOptions}
+                </Select>
+              </td>
+              <td className="num" data-label="Report">
+                <div className="row" style={{ gap: 8, justifyContent: 'flex-end' }}>
+                  <Button size="sm" variant="ghost" onClick={() => setEditing(e)}>Edit</Button>
+                  <Link to={`/team/${e.id}`} className="btn btn-ghost btn-sm">Report card</Link>
+                </div>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+
   return (
     <>
-      <PageHead eyebrow={`${employees.length} people`} title="The team">
+      <PageHead eyebrow={`${current.length} people${gone.length ? ` · ${gone.length} left` : ''}`} title="The team">
         <Button onClick={() => setAdding(true)}>+ Add employee</Button>
       </PageHead>
 
       <ErrorNote error={error} />
       {loading ? <Loading /> : employees.length === 0 ? <Empty>No employees yet.</Empty> : (
-        <div className="table-wrap">
-          <table className="table-stack">
-            <thead>
-              <tr>
-                <th>Name</th><th>Role</th><th>Joined</th>
-                <th className="num">Active</th><th>Availability</th><th className="num">Report</th>
-              </tr>
-            </thead>
-            <tbody>
-              {employees.map((e) => (
-                <tr key={e.id}>
-                  <td data-label="Name">
-                    <strong>{e.name}</strong>
-                    <div className="muted" style={{ fontSize: 12 }}>{e.email}</div>
-                  </td>
-                  <td data-label="Role">
-                    <Badge tone={e.role === 'admin' ? 'lilac' : undefined}>{e.role}</Badge>{' '}
-                    <span className="muted">{e.subRole}</span>
-                  </td>
-                  <td data-label="Joined">{fmtDate(e.joinDate)}</td>
-                  <td className="num" data-label="Active">{active(e.id)}</td>
-                  <td data-label="Availability">
-                    <Select value={e.status} onChange={(ev) => setStatus(e, ev.target.value)}
-                      aria-label={`Availability for ${e.name}`} style={{ width: 'auto', padding: '8px 14px' }}>
-                      <option value="available">available</option>
-                      <option value="on-leave">on-leave</option>
-                    </Select>
-                  </td>
-                  <td className="num" data-label="Report">
-                    <div className="row" style={{ gap: 8, justifyContent: 'flex-end' }}>
-                      <Button size="sm" variant="ghost" onClick={() => setEditing(e)}>Edit</Button>
-                      <Link to={`/team/${e.id}`} className="btn btn-ghost btn-sm">Report card</Link>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <>
+          {current.length > 0 ? table(current) : <Empty>Everyone here has left the team.</Empty>}
+          {gone.length > 0 && (
+            <section className="section">
+              <h2 className="eyebrow" style={{ marginBottom: 16 }}>Left the team · {gone.length}</h2>
+              {table(gone)}
+            </section>
+          )}
+        </>
       )}
 
       <AddEmployeeModal open={adding} onClose={() => setAdding(false)} roles={roles} onDone={reload} />
@@ -237,8 +253,7 @@ function EditEmployeeModal({ employee, roles, onClose, onDone }) {
           </Field>
           <Field label="Availability">
             <Select value={form.status} onChange={set('status')}>
-              <option value="available">available</option>
-              <option value="on-leave">on-leave</option>
+              {statusOptions}
             </Select>
           </Field>
         </div>

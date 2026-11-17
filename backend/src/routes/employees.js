@@ -8,6 +8,9 @@ const employees = new Hono();
 // passwordHash never leaves the worker
 const FIELDS = 'id, name, email, role, subRole, status, joinDate, mustChangePassword, createdAt';
 
+// 'left' keeps the row (and every task, payment and report tied to it); the UI just stops offering them work
+const STATUSES = ['available', 'on-leave', 'left'];
+
 // Any signed-in user may read the roster — task cards and comments show names.
 employees.get('/', async (c) => c.json(
   await all(c.env.DB, `SELECT ${FIELDS} FROM employees ORDER BY name COLLATE NOCASE`),
@@ -54,6 +57,9 @@ employees.post('/', requireAdmin, async (c) => {
 employees.patch('/:id', requireAdmin, async (c) => {
   const body = await c.req.json().catch(() => ({}));
   const data = { ...body };
+  if (body.status !== undefined && !STATUSES.includes(body.status)) {
+    return c.json({ error: `Status must be one of: ${STATUSES.join(', ')}.` }, 400);
+  }
   // Changing a password goes through the same hashing path as creation.
   const extra = [];
   if (body.password) {
