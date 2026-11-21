@@ -1,5 +1,5 @@
 import { Hono } from 'hono';
-import { all, insert, one, remove, update } from '../lib/db.js';
+import { all, insert, one, update } from '../lib/db.js';
 import { requireAdmin } from '../middleware/auth.js';
 
 const brands = new Hono();
@@ -23,9 +23,17 @@ brands.patch('/:id', requireAdmin, async (c) => {
   return row ? c.json(row) : c.json({ error: 'Brand not found.' }, 404);
 });
 
+/** Tasks survive a brand delete — they're unlinked, not removed. Its checklist goes with it. */
 brands.delete('/:id', requireAdmin, async (c) => {
-  await remove(c.env.DB, 'brands', c.req.param('id'));
-  return c.json({ ok: true });
+  const id = c.req.param('id');
+  const db = c.env.DB;
+  // one batch = one transaction: never a deleted brand with tasks still pointing at it
+  const [unlinked] = await db.batch([
+    db.prepare('UPDATE tasks SET brandId = NULL WHERE brandId = ?').bind(id),
+    db.prepare('DELETE FROM deliverables WHERE brandId = ?').bind(id),
+    db.prepare('DELETE FROM brands WHERE id = ?').bind(id),
+  ]);
+  return c.json({ ok: true, tasksUnlinked: unlinked.meta.changes });
 });
 
 export default brands;

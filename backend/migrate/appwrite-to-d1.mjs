@@ -5,8 +5,8 @@
  *   node migrate/appwrite-to-d1.mjs
  *
  * Two things worth knowing about the mapping:
- *  - employees.id becomes the old `userId`, NOT the old row `$id`. Tasks, dumps
- *    and payments all reference userIds, so this keeps every link intact.
+ *  - employees.id becomes the old `userId`, NOT the old row `$id`. Tasks and dumps
+ *    reference userIds, so this keeps every link intact.
  *  - Appwrite held the passwords, and they are not exportable. Each employee gets
  *    a fresh random temporary password, hashed here with the same PBKDF2 scheme
  *    the worker uses; the plain text lands in migrate/credentials.txt for you to
@@ -92,7 +92,6 @@ const brands = load('brands');
 const tasks = load('tasks');
 const dumps = load('dump');
 const comments = load('comments');
-const payments = load('payments');
 
 const credentials = [];
 const employeeRows = [];
@@ -116,7 +115,7 @@ const sql = [
   '-- Paste into the Cloudflare dashboard: D1 > your database > Console.',
   '-- Safe to re-run: every insert is INSERT OR REPLACE, keyed on id.',
   '',
-  '-- employees.id = the old Appwrite userId, so tasks/dumps/payments keep pointing at the right person.',
+  '-- employees.id = the old Appwrite userId, so tasks/dumps keep pointing at the right person.',
   insertRows('employees',
     ['id', 'name', 'email', 'passwordHash', 'role', 'subRole', 'status', 'joinDate',
       'mustChangePassword', 'createdAt'],
@@ -146,10 +145,6 @@ const sql = [
   insertRows('comments', ['id', 'taskId', 'authorId', 'authorName', 'message', 'createdAt'],
     comments.map((c) => [str(c.$id), str(c.taskId), str(c.authorId), str(c.authorName), str(c.message), str(c.$createdAt)])),
   '',
-  insertRows('payments', ['id', 'employeeId', 'month', 'base', 'bonus', 'deductions', 'status', 'paidOn'],
-    payments.map((p) => [str(p.$id), str(p.employeeId), str(p.month), numeric(p.base), numeric(p.bonus),
-      numeric(p.deductions), str(p.status || 'unpaid'), str(p.paidOn)])),
-  '',
 ].join('\n');
 
 writeFileSync(join(HERE, 'seed.sql'), sql);
@@ -166,4 +161,4 @@ writeFileSync(join(HERE, 'credentials.txt'), creds);
 console.log(`\nwrote migrate/seed.sql`);
 console.log(`wrote migrate/credentials.txt (${credentials.length} logins)\n`);
 console.log(`employees ${employees.length} | roles ${roles.length} | brands ${brands.length} `
-  + `| tasks ${tasks.length} | dumps ${dumps.length} | comments ${comments.length} | payments ${payments.length}`);
+  + `| tasks ${tasks.length} | dumps ${dumps.length} | comments ${comments.length}`);

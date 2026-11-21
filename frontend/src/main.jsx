@@ -14,8 +14,7 @@ import TaskDetail from './pages/TaskDetail';
 import Team from './pages/Team';
 import ReportCard from './pages/ReportCard';
 import Brands from './pages/Brands';
-import Salary from './pages/Salary';
-import Payslip from './pages/Payslip';
+import BrandDetail from './pages/BrandDetail';
 import Invoices from './pages/Invoices';
 import Analytics from './pages/Analytics';
 
@@ -42,8 +41,7 @@ createRoot(document.getElementById('root')).render(
                 <Route path="/team" element={<Team />} />
                 <Route path="/team/:userId" element={<ReportCard />} />
                 <Route path="/brands" element={<Brands />} />
-                <Route path="/salary" element={<Salary />} />
-                <Route path="/salary/:userId/:month" element={<Payslip />} />
+                <Route path="/brands/:id" element={<BrandDetail />} />
                 <Route path="/invoices" element={<Invoices />} />
                 <Route path="/analytics" element={<Analytics />} />
               </Route>

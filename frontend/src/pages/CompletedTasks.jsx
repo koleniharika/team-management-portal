@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { api, confirmDeleteTask } from '../lib/api';
+import { api, askDeleteTask } from '../lib/api';
 import { useAsync } from '../lib/useAsync';
 import { Button, Empty, ErrorNote, Field, Input, Loading, PageHead, Select } from '../components/ui';
 import TaskCard from '../components/TaskCard';
@@ -10,9 +10,8 @@ const NO_FILTERS = { q: '', title: '', brandId: '', status: '', priority: '', da
 
 export default function CompletedTasks() {
   const [filters, setFilters] = useState(NO_FILTERS);
-  const [error, setError] = useState(null);
 
-  const { data, loading, error: loadError, reload } = useAsync(
+  const { data, loading, error: loadError, mutate } = useAsync(
     () => Promise.all([
       api.list('tasks', { status: REVIEW_STATUSES.join(',') }),
       api.list('employees'),
@@ -44,14 +43,9 @@ export default function CompletedTasks() {
   }).sort((a, b) => String(b.completedAt || b.deadline || '').localeCompare(String(a.completedAt || a.deadline || ''))),
   [tasks, empById, q, title, filters]);
 
-  const removeTask = async (task) => {
-    setError(null);
-    try {
-      if (await confirmDeleteTask(task)) reload();
-    } catch (err) {
-      setError(err.message);
-    }
-  };
+  // gone from the list at once; a failed delete reverts and toasts
+  const removeTask = (task) => askDeleteTask()
+    && mutate((d) => ({ ...d, tasks: d.tasks.filter((t) => t.id !== task.id) }), () => api.remove('tasks', task.id));
 
   return (
     <>
@@ -103,7 +97,7 @@ export default function CompletedTasks() {
         </Field>
       </div>
 
-      <ErrorNote error={loadError || error} />
+      <ErrorNote error={loadError} />
       {loading ? <Loading /> : shown.length === 0 ? (
         <Empty>{dirty ? 'No submissions match these filters.' : 'Nothing submitted yet.'}</Empty>
       ) : (

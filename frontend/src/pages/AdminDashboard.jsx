@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { api, confirmDeleteTask } from '../lib/api';
+import { api, askDeleteTask } from '../lib/api';
 import { useAsync } from '../lib/useAsync';
 import { Badge, Button, Card, Empty, ErrorNote, Field, Input, Loading, PageHead, Select } from '../components/ui';
 import TaskCard from '../components/TaskCard';
@@ -12,9 +12,8 @@ export default function AdminDashboard() {
   const [nearestFirst, setNearestFirst] = useState(true);
   const [formFor, setFormFor] = useState(null); // null = closed, '' = anyone, employee id = preset
   const [filters, setFilters] = useState(NO_FILTERS);
-  const [error, setError] = useState(null);
 
-  const { data, loading, error: loadError, reload } = useAsync(
+  const { data, loading, error: loadError, reload, mutate } = useAsync(
     () => Promise.all([
       api.list('tasks', { statusNot: 'done' }),
       api.list('employees'),
@@ -60,14 +59,9 @@ export default function AdminDashboard() {
     && (!filters.role || e.role === filters.role)
     && (!filters.subRole || e.subRole === filters.subRole));
 
-  const removeTask = async (task) => {
-    setError(null);
-    try {
-      if (await confirmDeleteTask(task)) reload();
-    } catch (err) {
-      setError(err.message);
-    }
-  };
+  // gone from the list at once; a failed delete reverts and toasts
+  const removeTask = (task) => askDeleteTask()
+    && mutate((d) => ({ ...d, tasks: d.tasks.filter((t) => t.id !== task.id) }), () => api.remove('tasks', task.id));
 
   return (
     <>
@@ -125,7 +119,7 @@ export default function AdminDashboard() {
         )}
       </div>
 
-      <ErrorNote error={loadError || error} />
+      <ErrorNote error={loadError} />
       {loading ? <Loading /> : (
         <div className="grid grid-split">
           <section>

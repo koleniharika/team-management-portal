@@ -7,7 +7,7 @@ import roles from './routes/roles.js';
 import brands from './routes/brands.js';
 import tasks from './routes/tasks.js';
 import comments from './routes/comments.js';
-import payments from './routes/payments.js';
+import deliverables from './routes/deliverables.js';
 import dumps from './routes/dumps.js';
 
 const app = new Hono();
@@ -55,7 +55,7 @@ app.use('/roles/*', requireAuth);
 app.use('/brands/*', requireAuth);
 app.use('/tasks/*', requireAuth);
 app.use('/comments/*', requireAuth);
-app.use('/payments/*', requireAuth);
+app.use('/deliverables/*', requireAuth);
 app.use('/dumps/*', requireAuth);
 
 app.route('/employees', employees);
@@ -63,7 +63,7 @@ app.route('/roles', roles);
 app.route('/brands', brands);
 app.route('/tasks', tasks);
 app.route('/comments', comments);
-app.route('/payments', payments);
+app.route('/deliverables', deliverables);
 app.route('/dumps', dumps);
 
 app.notFound((c) => c.json({ error: `No route for ${c.req.method} ${c.req.path}` }, 404));

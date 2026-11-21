@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { api, confirmDeleteTask } from '../lib/api';
+import { api, askDeleteTask } from '../lib/api';
 import { useAsync } from '../lib/useAsync';
 import { useAuth } from '../context/AuthContext';
 import { Badge, Button, Card, Empty, ErrorNote, Field, Loading, Modal, TextArea } from '../components/ui';
@@ -15,7 +15,7 @@ export default function TaskDetail() {
   const [error, setError] = useState(null);
   const [busy, setBusy] = useState(false);
 
-  const { data, loading, error: loadError, reload } = useAsync(
+  const { data, loading, error: loadError, reload, mutate } = useAsync(
     () => api.get('tasks', id).then(async (task) => ({
       task,
       brand: task.brandId ? await api.get('brands', task.brandId).catch(() => null) : null,
@@ -36,7 +36,7 @@ export default function TaskDetail() {
   const act = async (fn) => {
     setBusy(true);
     setError(null);
-    try { await fn(); await reload(); } catch (e) { setError(e.message); } finally { setBusy(false); }
+    try { await fn(); reload(); } catch (e) { setError(e.message); } finally { setBusy(false); }
   };
 
   const postComment = (e) => {
@@ -49,12 +49,15 @@ export default function TaskDetail() {
     });
   };
 
-  // deleting takes the task's comments with it, then drops us back to the list
+  // deleting takes the task's comments with it, then drops us back to the list.
+  // Not optimistic: leaving first would let the list load the task before it's gone.
   const remove = async () => {
+    if (!askDeleteTask()) return;
     setBusy(true);
     setError(null);
     try {
-      if (await confirmDeleteTask(task)) navigate(isAdmin ? '/admin' : '/me', { replace: true });
+      await api.remove('tasks', task.id);
+      navigate(isAdmin ? '/admin' : '/me', { replace: true });
     } catch (e) {
       setError(e.message);
     } finally {
@@ -64,7 +67,10 @@ export default function TaskDetail() {
 
   // completedAt holds the local calendar day it was closed, same encoding as deadline,
   // so the on-time comparison never straddles a timezone. The real instant is $updatedAt.
-  const approve = () => act(() => api.update('tasks', id, { status: 'done', completedAt: toDateTime(today()) }));
+  const approve = () => {
+    const change = { status: 'done', completedAt: toDateTime(today()) };
+    mutate((d) => ({ ...d, task: { ...d.task, ...change } }), () => api.update('tasks', id, change));
+  };
 
   const reject = (remark) => act(async () => {
     await api.update('tasks', id, { status: 'pending', remarks: remark });
@@ -77,7 +83,7 @@ export default function TaskDetail() {
       <div className="row-between">
         <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>← Back</Button>
         {canDeleteTask(task, employee) && (
-          <Button variant="danger" size="sm" onClick={remove} disabled={busy}>Delete task</Button>
+          <Button variant="danger" size="sm" onClick={remove} busy={busy}>Delete task</Button>
         )}
       </div>
 
@@ -138,7 +144,7 @@ export default function TaskDetail() {
             <Field label="Add a comment">
               <TextArea value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Feedback, blockers, status…" />
             </Field>
-            <Button disabled={busy || !message.trim()}>Post comment</Button>
+            <Button busy={busy} disabled={!message.trim()}>Post comment</Button>
           </form>
         ) : (
           <p className="muted" style={{ marginTop: 20 }}>Only the assignee and admins can comment here.</p>
@@ -161,7 +167,7 @@ function RejectModal({ open, onClose, onReject, busy }) {
         </Field>
         <div className="modal-actions">
           <Button type="button" variant="ghost" onClick={onClose}>Cancel</Button>
-          <Button variant="orange" disabled={busy || !remark.trim()}>Send back</Button>
+          <Button variant="orange" busy={busy} disabled={!remark.trim()}>Send back</Button>
         </div>
       </form>
     </Modal>

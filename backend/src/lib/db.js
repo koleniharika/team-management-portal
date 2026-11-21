@@ -21,7 +21,7 @@ export const COLUMNS = {
   tasks: ['title', 'description', 'brandId', 'assignedTo', 'createdBy', 'status',
     'priority', 'deadline', 'submissionLink', 'remarks', 'completedAt'],
   comments: ['taskId', 'authorId', 'authorName', 'message'],
-  payments: ['employeeId', 'month', 'base', 'bonus', 'deductions', 'status', 'paidOn'],
+  deliverables: ['brandId', 'text', 'done', 'createdBy'],
   dumps: ['dumpType', 'link', 'title', 'description', 'tags', 'createdBy'],
 };
 

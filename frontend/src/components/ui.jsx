@@ -1,9 +1,17 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { TOAST_EVENT } from '../lib/toast';
 
 const cx = (...c) => c.filter(Boolean).join(' ');
 
-export function Button({ variant, size, className, as: As = 'button', ...props }) {
-  return <As className={cx('btn', variant && `btn-${variant}`, size && `btn-${size}`, className)} {...props} />;
+/** `busy` puts a small spinner on this button only and disables it until the request settles. */
+export function Button({ variant, size, className, as: As = 'button', busy, disabled, children, ...props }) {
+  return (
+    <As className={cx('btn', variant && `btn-${variant}`, size && `btn-${size}`, className)}
+      disabled={disabled || busy} aria-busy={busy || undefined} {...props}>
+      {busy && <span className="spinner" aria-hidden="true" />}
+      {children}
+    </As>
+  );
 }
 
 export function Card({ accent, hover, tight, feature, className, as: As = 'div', ...props }) {
@@ -96,8 +104,37 @@ export function Empty({ children }) {
   );
 }
 
-export function Loading({ label = 'Loading…' }) {
-  return <p className="muted" role="status">{label}</p>;
+/** First-load only — refreshes after an action update in place (see useAsync). */
+export function Loading({ label = 'Loading' }) {
+  return (
+    <div className="loader" role="status">
+      <img src="/loading.gif" alt={label} width="140" />
+    </div>
+  );
+}
+
+/** Mounted once in the Layout; shows whatever `showError` (lib/toast) raises. */
+export function ToastHost() {
+  const [message, setMessage] = useState(null);
+
+  useEffect(() => {
+    let timer;
+    const onToast = (e) => {
+      setMessage(e.detail);
+      clearTimeout(timer);
+      timer = setTimeout(() => setMessage(null), 5000);
+    };
+    window.addEventListener(TOAST_EVENT, onToast);
+    return () => { window.removeEventListener(TOAST_EVENT, onToast); clearTimeout(timer); };
+  }, []);
+
+  if (!message) return null;
+  return (
+    <div className="toast" role="alert">
+      <span>{message}</span>
+      <button type="button" className="icon-btn" onClick={() => setMessage(null)} aria-label="Dismiss">✕</button>
+    </div>
+  );
 }
 
 export function ErrorNote({ error }) {

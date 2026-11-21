@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { api } from '../lib/api';
 import { useAsync } from '../lib/useAsync';
 import { Button, Card, Empty, ErrorNote, Field, Input, Loading, Modal, PageHead, TextArea } from '../components/ui';
@@ -8,13 +9,18 @@ const blank = { name: '', contactName: '', contactInfo: '', ratePerProject: '', 
 
 export default function Brands() {
   const [editing, setEditing] = useState(null); // row | 'new' | null
-  const { data: brands, loading, error, reload } = useAsync(() => api.list('brands'), []);
+  const { data: brands, loading, error, reload, mutate } = useAsync(() => api.list('brands'), []);
 
-  const remove = async (b) => {
-    if (!confirm(`Delete ${b.name}? Tasks and invoices keep pointing at it.`)) return;
-    await api.remove('brands', b.id);
-    reload();
+  const remove = (b) => {
+    if (!window.confirm(`Delete ${b.name}?\n\nIts tasks are kept — they just won't be linked to a brand anymore, `
+      + 'so task history stays intact. Its deliverables checklist is deleted.')) return;
+    mutate((list) => list.filter((x) => x.id !== b.id), () => api.remove('brands', b.id));
   };
+
+  // edits show at once; a new brand waits for its id, then refreshes in place
+  const save = (brand, payload) => (brand === 'new'
+    ? api.create('brands', payload).then(reload)
+    : mutate((list) => list.map((x) => (x.id === brand.id ? { ...x, ...payload } : x)), () => api.update('brands', brand.id, payload)));
 
   return (
     <>
@@ -26,8 +32,10 @@ export default function Brands() {
       {loading ? <Loading /> : brands.length === 0 ? <Empty>No brands yet.</Empty> : (
         <div className="grid grid-cards">
           {brands.map((b) => (
-            <Card key={b.id} hover className="reveal">
-              <h2 className="card-title">{b.name}</h2>
+            <Card key={b.id} hover className="reveal card-clickable">
+              <h2 className="card-title">
+                <Link to={`/brands/${b.id}`} className="link-plain card-link">{b.name} <span aria-hidden="true">→</span></Link>
+              </h2>
               <p className="muted" style={{ margin: '6px 0 18px' }}>
                 {b.contactName || '—'}{b.contactInfo ? ` · ${b.contactInfo}` : ''}
               </p>
@@ -48,13 +56,13 @@ export default function Brands() {
         key={editing?.id || editing}
         brand={editing}
         onClose={() => setEditing(null)}
-        onDone={reload}
+        onSave={save}
       />
     </>
   );
 }
 
-function BrandModal({ brand, onClose, onDone }) {
+function BrandModal({ brand, onClose, onSave }) {
   const isNew = brand === 'new';
   const [form, setForm] = useState(() => (isNew || !brand ? blank : {
     name: brand.name || '', contactName: brand.contactName || '', contactInfo: brand.contactInfo || '',
@@ -70,10 +78,9 @@ function BrandModal({ brand, onClose, onDone }) {
     setError(null);
     const payload = { ...form, ratePerProject: Number(form.ratePerProject) || 0 };
     try {
-      if (isNew) await api.create('brands', payload);
-      else await api.update('brands', brand.id, payload);
+      if (isNew) await onSave(brand, payload); // wait: errors belong in this form
+      else onSave(brand, payload); // edit is optimistic — a failure reverts and toasts
       onClose();
-      onDone();
     } catch (err) {
       setError(err.message);
     } finally {
@@ -96,7 +103,7 @@ function BrandModal({ brand, onClose, onDone }) {
         <ErrorNote error={error} />
         <div className="modal-actions">
           <Button type="button" variant="ghost" onClick={onClose}>Cancel</Button>
-          <Button disabled={busy}>{busy ? 'Saving…' : 'Save brand'}</Button>
+          <Button busy={busy}>Save brand</Button>
         </div>
       </form>
     </Modal>

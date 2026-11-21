@@ -21,6 +21,7 @@
   --yellow: #fdf070;
   --pink: #f6c2f4;
   --lilac: #c7caff;
+  --red: #e0261b;          /* crossed-off deliverables only */
   --on-pastel: #070515;
 
   --tint-ink: rgba(7, 5, 21, 0.05);
@@ -57,6 +58,7 @@ html.dark {
   --yellow: #f2e565;
   --pink: #e9b5e7;
   --lilac: #babdf7;
+  --red: #ff4d42;
 
   --tint-ink: rgba(255, 255, 255, 0.07);
   --row-hover: rgba(255, 255, 255, 0.04);
@@ -208,7 +210,7 @@ textarea:focus-visible, [tabindex]:focus-visible, summary:focus-visible {
 [class*="card-accent-"] .muted,
 [class*="card-accent-"] .eyebrow { color: inherit; opacity: 0.72; }
 
-/* overdue, shared by task + salary cards */
+/* overdue task cards */
 .card-overdue { border: 2px solid var(--orange); }
 
 /* calm list cards carry their accent as a left border only */
@@ -551,13 +553,50 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 /* team members who have left: kept for history, out of the way */
 .row-left td { opacity: 0.55; }
 
-.dump-skeleton {
-  background: var(--cream); border: 1px solid var(--border); border-radius: var(--r-lg);
-  animation: pulse 1.4s ease-in-out infinite;
-}
-@keyframes pulse { 50% { opacity: 0.5; } }
+/* ---- loading: the gif on first load, a spinner on a busy button, a toast on failure ---- */
+.loader { display: grid; place-items: center; min-height: 40vh; }
+.loader img { max-width: 140px; height: auto; }
 
-/* ---- print (payslip + invoice) ---- */
+.spinner {
+  width: 1em; height: 1em; flex: none;
+  border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+.toast {
+  position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 100;
+  display: flex; align-items: center; gap: 8px;
+  max-width: min(520px, calc(100vw - 32px)); padding: 10px 10px 10px 18px;
+  background: var(--surface); color: var(--text); font-size: 14px; font-weight: 600;
+  border: 2px solid var(--orange); border-radius: var(--r-pill); box-shadow: var(--shadow-lg);
+}
+
+/* ---- whole-card links: the title link stretches over the card, buttons stay on top ---- */
+.card-clickable { position: relative; }
+.card-link::after { content: ''; position: absolute; inset: 0; border-radius: inherit; }
+.card-clickable .btn { position: relative; z-index: 1; }
+
+/* ---- brand deliverables: a handwritten list, crossed off in red ---- */
+.deliv-list { list-style: none; margin: 0; padding: 0; }
+.deliv { display: flex; align-items: center; gap: 14px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+.deliv:last-child { border-bottom: 0; }
+.deliv-text { flex: 1; min-width: 0; overflow-wrap: anywhere; font-size: 15px; }
+.deliv-check {
+  flex: none; width: 28px; height: 28px; padding: 3px; border-radius: 50%;
+  border: 2px solid var(--border-strong); background: transparent; cursor: pointer;
+  display: grid; place-items: center; transition: border-color 0.15s ease;
+}
+.deliv-check:hover { border-color: var(--red); }
+.deliv-check:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+.deliv-check:disabled { opacity: 0.45; cursor: wait; }
+.deliv-check svg { width: 100%; height: 100%; fill: none; stroke: var(--red); stroke-width: 3.5; stroke-linecap: round; }
+.is-done .deliv-check { border-color: var(--red); }
+.is-done .deliv-text {
+  color: var(--text-2);
+  text-decoration: line-through; text-decoration-color: var(--red); text-decoration-thickness: 2px;
+}
+
+/* ---- print (invoice) ---- */
 @media print {
   .no-print { display: none !important; }
   body { background: #fff; color: #000; }

@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { api, confirmDeleteTask } from '../lib/api';
+import { api, askDeleteTask } from '../lib/api';
 import { useAsync } from '../lib/useAsync';
 import { useAuth } from '../context/AuthContext';
 import { Button, Empty, ErrorNote, Field, Input, Loading, Modal, PageHead, Stat, TextArea } from '../components/ui';
@@ -12,7 +12,7 @@ export default function EmployeeDashboard() {
   const [creating, setCreating] = useState(false);
   const [submitFor, setSubmitFor] = useState(null);
 
-  const { data, loading, error, reload } = useAsync(
+  const { data, loading, error, reload, mutate } = useAsync(
     () => Promise.all([
       // the backend only ever returns this employee's own tasks
       api.list('tasks'),
@@ -25,9 +25,9 @@ export default function EmployeeDashboard() {
   const brandsById = useMemo(() => byId(brands), [brands]);
   const open = tasks.filter((t) => t.status !== 'done');
 
-  const removeTask = async (task) => {
-    if (await confirmDeleteTask(task)) reload();
-  };
+  // gone from the list at once; a failed delete reverts and toasts
+  const removeTask = (task) => askDeleteTask()
+    && mutate((d) => ({ ...d, tasks: d.tasks.filter((t) => t.id !== task.id) }), () => api.remove('tasks', task.id));
 
   const late = open.filter(isOverdue).length;
 
@@ -114,7 +114,7 @@ function SubmitModal({ task, onClose, onDone }) {
         <ErrorNote error={error} />
         <div className="modal-actions">
           <Button type="button" variant="ghost" onClick={onClose}>Cancel</Button>
-          <Button variant="lime" disabled={busy}>{busy ? 'Sending…' : 'Submit for review'}</Button>
+          <Button variant="lime" busy={busy}>Submit for review</Button>
         </div>
       </form>
     </Modal>

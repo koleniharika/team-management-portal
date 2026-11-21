@@ -50,15 +50,13 @@ CREATE TABLE IF NOT EXISTS comments (
   createdAt TEXT DEFAULT (datetime('now'))
 );
 
-CREATE TABLE IF NOT EXISTS payments (
+CREATE TABLE IF NOT EXISTS deliverables (
   id TEXT PRIMARY KEY,
-  employeeId TEXT NOT NULL,
-  month TEXT NOT NULL,
-  base REAL DEFAULT 0,
-  bonus REAL DEFAULT 0,
-  deductions REAL DEFAULT 0,
-  status TEXT NOT NULL DEFAULT 'unpaid',
-  paidOn TEXT
+  brandId TEXT NOT NULL,
+  text TEXT NOT NULL,
+  done INTEGER NOT NULL DEFAULT 0,   -- 0 = pending, 1 = crossed off
+  createdBy TEXT,
+  createdAt TEXT DEFAULT (datetime('now'))
 );
 
 CREATE TABLE IF NOT EXISTS dumps (
@@ -76,8 +74,7 @@ CREATE INDEX IF NOT EXISTS idx_tasks_assignedTo ON tasks (assignedTo);
 CREATE INDEX IF NOT EXISTS idx_tasks_status ON tasks (status);
 CREATE INDEX IF NOT EXISTS idx_tasks_brandId ON tasks (brandId);
 CREATE INDEX IF NOT EXISTS idx_comments_taskId ON comments (taskId);
-CREATE INDEX IF NOT EXISTS idx_payments_employeeId ON payments (employeeId);
-CREATE INDEX IF NOT EXISTS idx_payments_month ON payments (month);
+CREATE INDEX IF NOT EXISTS idx_deliverables_brandId ON deliverables (brandId);
 CREATE INDEX IF NOT EXISTS idx_dumps_createdAt ON dumps (createdAt);
 CREATE INDEX IF NOT EXISTS idx_dumps_dumpType ON dumps (dumpType);
 CREATE UNIQUE INDEX IF NOT EXISTS idx_dumps_link ON dumps (link);

@@ -173,10 +173,34 @@ check('employees cannot delete dumps', empDeletesDump.status === 403);
 const adminDeletesDump = await call('/dumps/' + note.json.id, { token: adminToken, method: 'DELETE' });
 check('admins can delete dumps', adminDeletesDump.status === 200);
 
-console.log('\n— payroll is admin-only —');
-check('employee cannot read payments', (await call('/payments', { token: empToken })).status === 403);
-const pay = await call('/payments', { token: adminToken, method: 'POST', body: { employeeId: empId, month: '2026-09', base: 15000, bonus: 1000, status: 'unpaid' } });
-check('admin can record a payment', pay.status === 201 && pay.json.base === 15000);
+console.log('\n— payroll is gone —');
+check('the payments API no longer exists', (await call('/payments', { token: adminToken })).status === 404);
+
+console.log('\n— brands: deliverables + delete —');
+const brand = await call('/brands', { token: adminToken, method: 'POST', body: { name: 'Glow Co' } });
+const bt = await call('/tasks', { token: adminToken, method: 'POST', body: { title: 'Glow reel', assignedTo: empId, brandId: brand.json.id } });
+check('brand task created', bt.status === 201 && bt.json.brandId === brand.json.id);
+check('brand filter on tasks', arr((await call(`/tasks?status=all&brandId=${brand.json.id}`, { token: adminToken })).json).length === 1);
+
+const d1 = await call('/deliverables', { token: adminToken, method: 'POST', body: { brandId: brand.json.id, text: '3 reels' } });
+const d2 = await call('/deliverables', { token: adminToken, method: 'POST', body: { brandId: brand.json.id, text: '1 carousel' } });
+check('add deliverables', d1.status === 201 && d1.json.done === 0 && d2.status === 201, JSON.stringify(d1.json));
+check('blank deliverable refused', (await call('/deliverables', { token: adminToken, method: 'POST', body: { brandId: brand.json.id, text: '  ' } })).status === 400);
+check('deliverable needs a real brand', (await call('/deliverables', { token: adminToken, method: 'POST', body: { brandId: 'nope', text: 'x' } })).status === 404);
+const ticked = await call('/deliverables/' + d1.json.id, { token: adminToken, method: 'PATCH', body: { done: true } });
+check('cross one off', ticked.json.done === 1);
+check('and un-cross it', (await call('/deliverables/' + d1.json.id, { token: adminToken, method: 'PATCH', body: { done: false } })).json.done === 0);
+const list = await call('/deliverables?brandId=' + brand.json.id, { token: adminToken });
+check('list by brand, oldest first', arr(list.json).map((d) => d.text).join('|') === '3 reels|1 carousel', JSON.stringify(list.json));
+check('employees cannot touch deliverables', (await call('/deliverables?brandId=' + brand.json.id, { token: empToken })).status === 403);
+await call('/deliverables/' + d2.json.id, { token: adminToken, method: 'DELETE' });
+check('delete a deliverable', arr((await call('/deliverables?brandId=' + brand.json.id, { token: adminToken })).json).length === 1);
+
+const delBrand = await call('/brands/' + brand.json.id, { token: adminToken, method: 'DELETE' });
+check('admin deletes a brand', delBrand.status === 200 && delBrand.json.tasksUnlinked === 1, JSON.stringify(delBrand.json));
+const survivor = await call('/tasks/' + bt.json.id, { token: adminToken });
+check("the brand's task survives, unlinked", survivor.status === 200 && survivor.json.brandId === null, JSON.stringify(survivor.json));
+check("the brand's checklist goes with it", arr((await call('/deliverables?brandId=' + brand.json.id, { token: adminToken })).json).length === 0);
 
 console.log(failures ? `\n${failures} FAILURE(S)\n` : '\nall backend checks passed\n');
 process.exit(failures ? 1 : 0);

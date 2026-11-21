@@ -51,9 +51,5 @@ export const api = {
     request('/auth/change-password', { method: 'POST', body: { currentPassword, newPassword } }),
 };
 
-/** Confirm + delete. The backend removes the task's comments with it. */
-export const confirmDeleteTask = async (task) => {
-  if (!window.confirm("Delete this task? This can't be undone.")) return false;
-  await api.remove('tasks', task.id);
-  return true;
-};
+/** The one confirm every task delete asks. The backend removes the task's comments with it. */
+export const askDeleteTask = () => window.confirm("Delete this task? This can't be undone.");

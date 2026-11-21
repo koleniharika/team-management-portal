@@ -65,7 +65,7 @@ check(`migrated employee (${worker.email}) can sign in`, empLogin.status === 200
 const empTasks = await call('/tasks', { token: empLogin.json.token });
 check('their list is exactly their own tasks', empTasks.json.every((t) => t.assignedTo === busiestId));
 check(`and holds all ${expected} of them`, empTasks.json.length === expected, `got ${empTasks.json.length}`);
-check('migrated employee still cannot reach payroll', (await call('/payments', { token: empLogin.json.token })).status === 403);
+check('migrated employee still cannot reach admin-only routes', (await call('/deliverables?brandId=x', { token: empLogin.json.token })).status === 403);
 
 console.log(failures ? `\n${failures} FAILURE(S)\n` : '\nmigration verified\n');
 process.exit(failures ? 1 : 0);

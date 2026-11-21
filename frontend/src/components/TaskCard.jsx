@@ -1,15 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Badge, Button, Card } from './ui';
-import { PRIORITY_TONE, fmtDate, isOverdue } from '../lib/util';
-
-const STATUS_TONE = {
-  pending: 'yellow',
-  'in-progress': 'blue',
-  submitted: 'lilac',
-  approved: 'lime',
-  done: 'lime',
-  rejected: 'pink',
-};
+import { PRIORITY_TONE, STATUS_TONE, fmtDate, isOverdue } from '../lib/util';
 
 export default function TaskCard({ task, brandName, assigneeName, onDelete, children }) {
   const late = isOverdue(task);

@@ -3,7 +3,7 @@ import { api } from '../lib/api';
 import { useAsync } from '../lib/useAsync';
 import { useAuth } from '../context/AuthContext';
 import { embedFor, hostOf, matches, tagsOf } from '../lib/embed';
-import { Badge, Button, Card, Empty, ErrorNote, Field, Input, Modal, PageHead, TextArea } from '../components/ui';
+import { Badge, Button, Card, Empty, ErrorNote, Field, Input, Loading, Modal, PageHead, TextArea } from '../components/ui';
 
 const TABS = [
   { key: 'carousel', label: 'Carousel Dump', hint: 'Carousel posts worth stealing from.', placeholder: 'https://www.instagram.com/p/…' },
@@ -22,10 +22,9 @@ export default function Dump() {
   const [tag, setTag] = useState('');
   const [adding, setAdding] = useState(false);
   const [openId, setOpenId] = useState(null);
-  const [error, setError] = useState(null);
 
   // one fetch for all three tabs: switching tabs and searching never wait on the network
-  const { data, loading, error: loadError, reload } = useAsync(() => api.list('dumps'), []);
+  const { data, loading, error: loadError, setData, mutate } = useAsync(() => api.list('dumps'), []);
   const dumps = useMemo(() => data || [], [data]);
 
   const allTags = useMemo(() => [...new Set(dumps.flatMap(tagsOf))].sort(), [dumps]);
@@ -38,22 +37,16 @@ export default function Dump() {
   const switchTab = (key) => { setTab(key); setTag(''); };
   const toggleTag = (t) => setTag((cur) => (cur === t ? '' : t));
 
-  const remove = async (dump) => {
+  const remove = (dump) => {
     if (!window.confirm("Delete this from your dump? This can't be undone.")) return;
-    setError(null);
-    try {
-      await api.remove('dumps', dump.id);
-      setOpenId(null);
-      reload();
-    } catch (err) {
-      setError(err.message);
-    }
+    setOpenId(null);
+    mutate((list) => list.filter((d) => d.id !== dump.id), () => api.remove('dumps', dump.id));
   };
 
   return (
     <>
       <PageHead
-        eyebrow={loading ? 'Loading…' : `${inTab.length} saved · ${current.hint}`}
+        eyebrow={loading ? current.hint : `${inTab.length} saved · ${current.hint}`}
         title="Dump"
       >
         <Button onClick={() => setAdding(true)}>+ Add</Button>
@@ -85,15 +78,9 @@ export default function Dump() {
         )}
       </div>
 
-      <ErrorNote error={loadError || error} />
+      <ErrorNote error={loadError} />
 
-      {loading ? (
-        <div className="masonry" aria-hidden="true">
-          {[220, 150, 280, 190, 240, 170].map((h, i) => (
-            <div key={i} className="dump-skeleton" style={{ height: h }} />
-          ))}
-        </div>
-      ) : shown.length === 0 ? (
+      {loading ? <Loading /> : shown.length === 0 ? (
         <Empty>
           {inTab.length ? 'Nothing matches that search.' : <>Nothing in the {current.label} yet. Hit <strong>+ Add</strong>.</>}
         </Empty>
@@ -106,7 +93,7 @@ export default function Dump() {
       )}
 
       <AddModal key={`${tab}-${adding}`} open={adding} tab={current} knownTags={allTags}
-        onClose={() => setAdding(false)} onSaved={() => { setAdding(false); reload(); }} />
+        onClose={() => setAdding(false)} onSaved={(row) => { setAdding(false); setData((list) => [row, ...list]); }} />
 
       <Modal open={!!open} onClose={() => setOpenId(null)} title={open?.title || (open?.link ? hostOf(open.link) : 'Idea')}
         subtitle={open && new Date(open.createdAt).toLocaleDateString()}>
@@ -239,8 +226,7 @@ function AddModal({ open, tab, knownTags, onClose, onSaved }) {
     setError(null);
     try {
       // the worker cleans the link and refuses one that's already saved
-      await api.create('dumps', { dumpType: tab.key, ...form, tags });
-      onSaved();
+      onSaved(await api.create('dumps', { dumpType: tab.key, ...form, tags }));
     } catch (err) {
       setError(err.message);
     } finally {
@@ -287,7 +273,7 @@ function AddModal({ open, tab, knownTags, onClose, onSaved }) {
         <ErrorNote error={error} />
         <div className="modal-actions">
           <Button type="button" variant="ghost" onClick={onClose}>Cancel</Button>
-          <Button disabled={busy || empty}>{busy ? 'Saving…' : 'Save'}</Button>
+          <Button busy={busy} disabled={empty}>Save</Button>
         </div>
       </form>
     </Modal>

@@ -58,8 +58,8 @@ export default function ChangePassword() {
           </Field>
 
           <ErrorNote error={error} />
-          <Button size="lg" className="btn-block" style={{ marginTop: 12 }} disabled={busy}>
-            {busy ? 'Saving…' : 'Save and continue'}
+          <Button size="lg" className="btn-block" style={{ marginTop: 12 }} busy={busy}>
+            Save and continue
           </Button>
         </form>
 

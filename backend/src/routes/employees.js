@@ -8,7 +8,7 @@ const employees = new Hono();
 // passwordHash never leaves the worker
 const FIELDS = 'id, name, email, role, subRole, status, joinDate, mustChangePassword, createdAt';
 
-// 'left' keeps the row (and every task, payment and report tied to it); the UI just stops offering them work
+// 'left' keeps the row (and every task and report tied to it); the UI just stops offering them work
 const STATUSES = ['available', 'on-leave', 'left'];
 
 // Any signed-in user may read the roster — task cards and comments show names.

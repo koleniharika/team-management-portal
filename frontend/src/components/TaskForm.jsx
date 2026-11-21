@@ -100,7 +100,7 @@ export default function TaskForm({ open, onClose, onCreated, employees = [], bra
         <ErrorNote error={error} />
         <div className="modal-actions">
           <Button type="button" variant="ghost" onClick={close}>Cancel</Button>
-          <Button disabled={busy}>{busy ? 'Creating…' : 'Create task'}</Button>
+          <Button busy={busy}>Create task</Button>
         </div>
       </form>
     </Modal>

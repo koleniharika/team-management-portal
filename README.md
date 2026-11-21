@@ -7,7 +7,7 @@ React + Vite + Appwrite. Two access levels — **admin** and **employee**. No pu
 ```bash
 npm install
 npm run dev      # http://localhost:5173
-npm run check    # date / salary-cycle self-check
+npm run check    # date, invoice and dump-embed self-checks
 npm run lint
 npm run build
 ```
@@ -26,7 +26,6 @@ All keys are `VITE_`-prefixed and read in [src/lib/appwrite.js](src/lib/appwrite
 | `VITE_APPWRITE_BRANDS_TABLE_ID` | brands |
 | `VITE_APPWRITE_TASKS_TABLE_ID` | tasks |
 | `VITE_APPWRITE_COMMENTS_TABLE_ID` | comments |
-| `VITE_APPWRITE_PAYMENTS_TABLE_ID` | payments |
 | `VITE_APPWRITE_INVOICES_TABLE_ID` | invoices (analytics only — invoicing is local now) |
 | `VITE_APPWRITE_DUMPS_TABLE_ID` | dumps |
 | `VITE_APPWRITE_DUMPS_BUCKET_ID` | storage bucket for dump files |
@@ -38,13 +37,12 @@ needs filling if your ids differ from the names.
 
 Columns are the ones in `appwrite-setup.md`. Two notes that matter at runtime:
 
-- **Date columns are Appwrite `datetime`** (`deadline`, `completedAt`, `joinDate`, `paidOn`,
+- **Date columns are Appwrite `datetime`** (`deadline`, `completedAt`, `joinDate`,
   `periodFrom`, `periodTo`). A picked day is written as UTC midnight —
   `2026-08-20T00:00:00.000Z` via `toDateTime()` in [src/lib/util.js](src/lib/util.js) — and read
   back with `.slice(0, 10)`. No timezone conversion happens in either direction, so the day you
   pick is the day that comes back; `new Date(d).toISOString()` would shift it for anyone east or
-  west of GMT. `paidOn` is set to `null` (never `''`) when a payment is marked unpaid, so the
-  column must be **not required**. `payments.month` stays a plain `YYYY-MM` **string**.
+  west of GMT.
 - **`invoices.taskIds` must be a string array** (an array-of-strings column), not a single string.
   The invoices table is now only read by Analytics; the invoicing page never touches it.
 - **`dumps`**: `type` (enum `text|image|pdf`), `content`, `fileId`, `fileName`, `createdBy`.
@@ -53,10 +51,10 @@ Columns are the ones in `appwrite-setup.md`. Two notes that matter at runtime:
   when third-party cookies are blocked.
 
 Also add the Appwrite indexes the queries rely on: `employees.userId`, `tasks.assignedTo`,
-`tasks.status`, `comments.taskId`, `payments.employeeId`, `payments.month`, `invoices.brandId`.
+`tasks.status`, `comments.taskId`, `invoices.brandId`.
 
 Permissions: give logged-in users read access to all tables, and create/update rights on
-`tasks`, `comments`, `brands`, `payments`, `invoices`. Row-level restrictions beyond that are not
+`tasks`, `comments`, `brands`, `invoices`. Row-level restrictions beyond that are not
 enforced client-side — the UI hides admin routes, it does not replace table permissions.
 
 ## First admin
@@ -86,12 +84,12 @@ src/
   context/    AuthContext (session + role), ThemeContext (dark/light)
   components/ ui.jsx (button, card, badge, input, modal, stat), Layout, TaskCard, TaskForm
   pages/      Login, AdminDashboard, EmployeeDashboard, CompletedTasks, TaskDetail, Team,
-              ReportCard, Brands, Salary, Payslip, Invoices (local), Dump, Analytics
+              ReportCard, Brands, BrandDetail, Invoices (local), Dump, Analytics
 ```
 
 Routes: `/` sign-in · `/me` employee desk · `/tasks/:id` detail + comments · `/dump` idea board
 (any signed-in user) · `/admin`, `/completed-tasks`, `/team`, `/team/:userId`, `/brands`,
-`/salary`, `/salary/:userId/:month`, `/invoices`, `/analytics` (admin only).
+`/brands/:id` (report + deliverables checklist), `/invoices`, `/analytics` (admin only).
 
 ## Invoicing (local only)
 
@@ -110,12 +108,5 @@ removed by query. Admins can delete any task; everyone else only what they creat
 
 Every colour is a CSS variable in [src/index.css](src/index.css); `.dark` on `<html>` swaps the
 palette, and the choice is saved to `localStorage`. Components never hard-code a colour, so new
-pages get both themes for free. The payslip prints via `window.print()` — anything marked
-`.no-print` is dropped. Invoices download as a PDF instead.
-
-## Salary module
-
-Layout and cycle maths are ported from `salaryModule.html`: fixed payday-of-month anchor,
-clamped to short months (31st → 28 Feb → back to 31 Mar), overdue / due-today / upcoming
-status, and the stats + history-table layout. `npm run check` runs those assertions.
-Net pay = base + bonus − deductions.
+pages get both themes for free. Anything marked `.no-print` is dropped when printing;
+invoices download as a PDF instead.

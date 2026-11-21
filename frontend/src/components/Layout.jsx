@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { NavLink, Navigate, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
-import { Button, Loading } from './ui';
+import { Button, Loading, ToastHost } from './ui';
 import { initials } from '../lib/util';
 import ChangePassword from '../pages/ChangePassword';
 
@@ -11,7 +11,6 @@ const ADMIN_NAV = [
   ['/completed-tasks', 'Review'],
   ['/team', 'Team'],
   ['/brands', 'Brands'],
-  ['/salary', 'Salary'],
   ['/invoices', 'Invoices'],
   ['/dump', 'Dump'],
   ['/analytics', 'Analytics'],
@@ -20,7 +19,7 @@ const ADMIN_NAV = [
 export function ProtectedRoute({ adminOnly = false }) {
   const { employee, isAdmin, loading } = useAuth();
 
-  if (loading) return <div className="wrap page"><Loading label="Checking your session…" /></div>;
+  if (loading) return <div className="wrap page"><Loading label="Checking your session" /></div>;
   if (!employee) return <Navigate to="/" replace />;
   // a handed-out password gets replaced before anything else loads
   if (employee.mustChangePassword) return <ChangePassword />;
@@ -85,6 +84,7 @@ export default function Layout() {
         </div>
       </header>
       <main className="wrap page"><Outlet /></main>
+      <ToastHost />
     </div>
   );
 }

@@ -12,7 +12,7 @@ export default function Team() {
   const [adding, setAdding] = useState(false);
   const [editing, setEditing] = useState(null);
 
-  const { data, loading, error, reload } = useAsync(
+  const { data, loading, error, reload, mutate } = useAsync(
     () => Promise.all([
       api.list('employees'),
       api.list('roles'),
@@ -26,7 +26,15 @@ export default function Team() {
   const current = employees.filter((e) => e.status !== 'left');
   const gone = employees.filter((e) => e.status === 'left');
 
-  const setStatus = async (emp, status) => { await api.update('employees', emp.id, { status }); reload(); };
+  // instant in the table; a failed save reverts and toasts (see useAsync.mutate)
+  const patchEmployee = (emp, payload) => {
+    const { password, ...shown } = payload; // eslint-disable-line no-unused-vars -- never kept client-side
+    return mutate(
+      (d) => ({ ...d, employees: d.employees.map((e) => (e.id === emp.id ? { ...e, ...shown } : e)) }),
+      () => api.update('employees', emp.id, payload),
+    );
+  };
+  const setStatus = (emp, status) => patchEmployee(emp, { status });
 
   const table = (list) => (
     <div className="table-wrap">
@@ -90,7 +98,7 @@ export default function Team() {
 
       <AddEmployeeModal open={adding} onClose={() => setAdding(false)} roles={roles} onDone={reload} />
       <EditEmployeeModal key={editing?.id} employee={editing} roles={roles}
-        onClose={() => setEditing(null)} onDone={reload} />
+        onClose={() => setEditing(null)} onSave={patchEmployee} onRoleAdded={reload} />
     </>
   );
 }
@@ -176,7 +184,7 @@ function AddEmployeeModal({ open, onClose, roles, onDone }) {
         <ErrorNote error={error} />
         <div className="modal-actions">
           <Button type="button" variant="ghost" onClick={close}>Cancel</Button>
-          <Button disabled={busy}>{busy ? 'Creating…' : 'Create login'}</Button>
+          <Button busy={busy}>Create login</Button>
         </div>
       </form>
     </Modal>
@@ -187,7 +195,7 @@ function AddEmployeeModal({ open, onClose, roles, onDone }) {
  * Admin edit: details plus an optional new password. Setting one flags the
  * account so the employee is asked to pick their own on the next sign-in.
  */
-function EditEmployeeModal({ employee, roles, onClose, onDone }) {
+function EditEmployeeModal({ employee, roles, onClose, onSave, onRoleAdded }) {
   const [form, setForm] = useState(() => ({
     name: employee?.name || '',
     email: employee?.email || '',
@@ -212,6 +220,7 @@ function EditEmployeeModal({ employee, roles, onClose, onDone }) {
       if (subRole === '__new') {
         subRole = newRole.trim();
         await api.create('roles', { name: subRole });
+        onRoleAdded();
       }
 
       const payload = {
@@ -225,9 +234,8 @@ function EditEmployeeModal({ employee, roles, onClose, onDone }) {
       // only send a password when one was actually typed
       if (form.password) payload.password = form.password;
 
-      await api.update('employees', employee.id, payload);
+      onSave(employee, payload); // optimistic: the row updates now, a failure reverts and toasts
       onClose();
-      onDone();
     } catch (err) {
       setError(err.message);
     } finally {
@@ -285,7 +293,7 @@ function EditEmployeeModal({ employee, roles, onClose, onDone }) {
         <ErrorNote error={error} />
         <div className="modal-actions">
           <Button type="button" variant="ghost" onClick={onClose}>Cancel</Button>
-          <Button disabled={busy}>{busy ? 'Saving…' : 'Save changes'}</Button>
+          <Button busy={busy}>Save changes</Button>
         </div>
       </form>
     </Modal>

@@ -13,7 +13,7 @@ export default function Login() {
   const [error, setError] = useState(null);
   const [busy, setBusy] = useState(false);
 
-  if (loading) return <div className="wrap page"><Loading label="Checking your session…" /></div>;
+  if (loading) return <div className="wrap page"><Loading label="Checking your session" /></div>;
   if (employee) return <Navigate to={isAdmin ? '/admin' : '/me'} replace />;
 
   const submit = async (e) => {
@@ -81,8 +81,8 @@ export default function Login() {
                 value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
             </Field>
             <ErrorNote error={error} />
-            <Button size="lg" className="btn-block" style={{ marginTop: 12 }} disabled={busy}>
-              {busy ? 'Signing in…' : 'Enter'}
+            <Button size="lg" className="btn-block" style={{ marginTop: 12 }} busy={busy}>
+              Enter
             </Button>
           </form>
         </Card>
